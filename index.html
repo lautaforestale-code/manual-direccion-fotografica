@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0b0a08">
-<title>Manual de Dirección Fotográfica Cinematográfica — Edición Profesional</title>
+<meta name="author" content="Lautaro Forestale">
+<meta name="description" content="Manual de Dirección Fotográfica Cinematográfica, por Lautaro Forestale — 52 capítulos, 100 fotografías reales y 84 diagramas técnicos.">
+<title>Manual de Dirección Fotográfica Cinematográfica — Lautaro Forestale</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -125,14 +127,76 @@ img{max-width:100%}
 
 /* --- Portada claqueta --- */
 .slate{background:#101010;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
-.slate .stripes{height:34px;background:repeating-linear-gradient(45deg,#efe7d4 0 20px,#101010 20px 40px)}
-.slate .body{padding:30px 26px 36px;color:#efe7d4}
-.slate h1{font-family:var(--font-ui);font-weight:800;font-size:clamp(24px,5vw,34px);line-height:1.15;letter-spacing:-.01em}
-.slate .sub{color:#b7ad96;margin-top:12px;font-size:14.5px}
-.slate .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:#2e2a23;border:1px solid #2e2a23;margin-top:24px}
+.slate .stripes{
+  height:34px;background:repeating-linear-gradient(45deg,#efe7d4 0 20px,#101010 20px 40px);
+  transform-origin:2% 50%;animation:clap .6s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes clap{0%{transform:rotate(-8deg) translateY(-7px)}58%{transform:rotate(1.6deg)}100%{transform:rotate(0)}}
+.slate .body{padding:34px 28px 38px;color:#efe7d4;position:relative;overflow:hidden}
+.slate .body::before{
+  content:"";position:absolute;top:-40%;right:-15%;width:60%;height:180%;
+  background:radial-gradient(closest-side,rgba(245,166,35,.16),transparent 70%);
+  pointer-events:none;
+}
+.slate h1{font-family:var(--font-ui);font-weight:900;font-size:clamp(28px,6.4vw,44px);line-height:1.08;letter-spacing:-.015em;text-wrap:balance;position:relative}
+.slate .sub{color:#b7ad96;margin-top:14px;font-size:15px;max-width:56ch;line-height:1.6;position:relative}
+.slate .byline{font-family:var(--font-mono);font-size:13.5px;color:#c9bfa4;letter-spacing:.03em;margin-top:16px;position:relative}
+.slate .byline b{color:#fff;font-weight:700;border-bottom:1px solid var(--amber-dim)}
+.slate .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:#2e2a23;border:1px solid #2e2a23;margin-top:26px;border-radius:10px;overflow:hidden}
 .slate .cell{background:#161412;padding:11px 12px}
 .slate .cell small{display:block;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;color:#7a7160}
 .slate .cell span{font-family:var(--font-mono);font-size:13px;color:#fff}
+
+/* --- Portada: insignia, CTA, stats --- */
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;position:relative;
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--amber);background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);
+  padding:6px 12px;border-radius:99px;margin-bottom:20px;
+}
+.hero-badge .rec{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1.7s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px;position:relative}
+.btn-play{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--amber);color:#0b0a08;font-family:var(--font-ui);font-weight:800;font-size:15px;
+  padding:14px 24px;border-radius:11px;border:none;cursor:pointer;
+  box-shadow:0 10px 26px rgba(245,166,35,.3);transition:transform .15s,box-shadow .15s;
+}
+.btn-play:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(245,166,35,.4)}
+.btn-play:active{transform:translateY(0) scale(.98)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.04);color:#efe7d4;font-family:var(--font-ui);font-weight:600;font-size:14px;
+  padding:13px 18px;border-radius:11px;border:1px solid rgba(255,255,255,.16);cursor:pointer;
+  transition:background .15s,border-color .15s;
+}
+.btn-ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.35)}
+.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:1px;background:#2e2a23;border:1px solid #2e2a23;border-radius:10px;overflow:hidden;margin-top:26px;position:relative}
+.hero-stats .s{background:#161412;padding:15px 10px;text-align:center}
+.hero-stats .s b{display:block;font-family:var(--font-ui);font-weight:800;font-size:24px;color:var(--amber);font-variant-numeric:tabular-nums}
+.hero-stats .s small{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#7a7160;margin-top:4px}
+@media(prefers-reduced-motion:reduce){.slate .stripes{animation:none}.hero-badge .rec{animation:none}}
+
+/* --- Portada: grilla de partes --- */
+.parts-intro{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:46px 0 16px;flex-wrap:wrap}
+.parts-intro h2{margin:0;border:none;padding:0}
+.parts-intro a{font-family:var(--font-mono);font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer}
+.parts-intro a:hover{color:var(--amber)}
+.parts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:13px}
+.part-card{
+  width:100%;display:block;font:inherit;text-align:left;color:var(--ink);
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:17px 19px;
+  cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;
+  opacity:0;transform:translateY(10px);animation:cardin .5s ease forwards;
+}
+.part-card:hover{transform:translateY(-3px);border-color:var(--amber-dim);box-shadow:0 14px 28px rgba(0,0,0,.35)}
+[data-theme="luzdia"] .part-card:hover{box-shadow:0 14px 28px rgba(90,70,30,.16)}
+.part-card .pn{font-family:var(--font-mono);font-size:10.5px;color:var(--amber);letter-spacing:.09em}
+.part-card h3{margin:8px 0 5px;color:var(--ink);font-size:16px;font-family:var(--font-ui);font-weight:700}
+.part-card p{margin:0;font-size:12px;color:var(--muted);font-family:var(--font-mono);line-height:1.5}
+@keyframes cardin{to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.part-card{animation:none;opacity:1;transform:none}}
 
 /* --- Tipografía de capítulo --- */
 .kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);font-weight:700;margin-bottom:8px}
@@ -269,12 +333,25 @@ tr:nth-child(even) td{background:var(--panel)}
       <div class="slate">
         <div class="stripes"></div>
         <div class="body">
+          <div class="hero-badge"><span class="rec"></span> Edición profesional · actualizado 25 / ago / 2026</div>
           <h1>MANUAL DE DIRECCIÓN FOTOGRÁFICA CINEMATOGRÁFICA</h1>
-          <p class="sub">Edición profesional — una reconstrucción propia y explicativa del oficio, de los fundamentos técnicos a la práctica en set.</p>
+          <p class="sub">Una reconstrucción propia y explicativa del oficio, de los fundamentos técnicos a la práctica en set: cámara, óptica, exposición, luz y color, iluminación, método de trabajo y la industria contemporánea, escrito de punta a punta para leerse de corrido o consultarse capítulo por capítulo.</p>
+          <p class="byline">Escrito y dirigido por <b>Lautaro Forestale</b></p>
+          <div class="hero-cta">
+            <button class="btn-play" data-go="c1">▶ Empezar a leer</button>
+            <button class="btn-ghost" data-go="indice">☰ Índice completo</button>
+            <button class="btn-ghost" data-go="como-leer">Cómo está organizado</button>
+          </div>
+          <div class="hero-stats">
+            <div class="s"><b>52</b><small>Capítulos</small></div>
+            <div class="s"><b>9</b><small>Partes</small></div>
+            <div class="s"><b>100</b><small>Fotografías</small></div>
+            <div class="s"><b>84</b><small>Diagramas</small></div>
+          </div>
           <div class="grid">
-            <div class="cell"><small>EDICIÓN</small><span>Profesional</span></div>
-            <div class="cell"><small>VERSIÓN</small><span>21 / AGO / 2026</span></div>
-            <div class="cell"><small>TAKE</small><span>03</span></div>
+            <div class="cell"><small>DIRECTOR</small><span>Lautaro Forestale</span></div>
+            <div class="cell"><small>VERSIÓN</small><span>25 / AGO / 2026</span></div>
+            <div class="cell"><small>TAKE</small><span>06</span></div>
             <div class="cell"><small>ESCENA</small><span>I – IX + ANEXOS</span></div>
             <div class="cell"><small>FORMATO</small><span>2.39 : 1</span></div>
             <div class="cell"><small>ROLL</small><span>A – C</span></div>
@@ -283,7 +360,9 @@ tr:nth-child(even) td{background:var(--panel)}
       </div>
       <div class="zonestrip" data-zones></div>
       <p><strong>Alcance:</strong> un recorrido completo por la dirección de fotografía cinematográfica — cámara, óptica, exposición, luz y color, iluminación, método de trabajo y contexto de la industria contemporánea — escrito de punta a punta como manual de oficio, pensado para leerse de principio a fin o consultarse capítulo por capítulo.</p>
-      <p><a data-go="como-leer">→ Cómo está organizado este manual</a></p>
+
+      <div class="parts-intro"><h2>Explorá el manual</h2><a data-go="indice">Ver índice completo →</a></div>
+      <div class="parts-grid" id="partsGrid"></div>
     </section>
 
     <!-- CÓMO LEER -->
@@ -5242,6 +5321,28 @@ STRUCT.forEach(g=>{
   fi.insertAdjacentHTML('beforeend',`<h3 style="margin-top:22px">${g.p}</h3><ul>${g.items.map(i=>
     `<li><a data-go="${i.id}" style="cursor:pointer">${i.n}. ${i.t}</a></li>`).join('')}</ul>`);
 });
+
+/* ---- Grilla de partes (portada) ---- */
+function renderPartsGrid(){
+  const pg=document.getElementById('partsGrid');
+  if(!pg)return;
+  STRUCT.forEach((g,gi)=>{
+    if(g.p==='Inicio')return;
+    const first=g.items[0];
+    const split=g.p.split('—');
+    const ordinal=split.length>1?split[0].trim():'Anexos';
+    const title=split.length>1?split[1].trim():'Formularios, tablas, glosario y créditos';
+    const unit=g.p==='Anexos'?'sección':'capítulo';
+    const preview=g.items.slice(0,3).map(x=>x.t).join(' · ')+(g.items.length>3?' …':'');
+    const btn=document.createElement('button');
+    btn.className='part-card';
+    btn.style.animationDelay=(gi*0.05)+'s';
+    btn.innerHTML=`<div class="pn">${ordinal.toUpperCase()} · ${g.items.length} ${unit}${g.items.length===1?'':(unit==='sección'?'es':'s')}</div><h3>${title}</h3><p>${preview}</p>`;
+    btn.onclick=()=>go(first.id);
+    pg.appendChild(btn);
+  });
+}
+renderPartsGrid();
 
 /* ---- Zone strips ---- */
 document.querySelectorAll('[data-zones]').forEach(z=>{
