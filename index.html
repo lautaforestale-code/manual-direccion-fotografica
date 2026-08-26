@@ -6082,6 +6082,7 @@ addEventListener('keydown',e=>{
       // Primer intento fallido: puede ser un problema de red transitorio (falla al bajar
       // algún fragmento del modelo) o un problema real de GPU. Descartamos el engine y
       // probamos una vez más antes de rendirnos — muchas fallas de red son puntuales.
+      window.__lcDebugErr1=err1;console.error('[LauChat debug] intento 1 fallo:',err1);
       ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
       status.textContent='Falló, reintentando…';
       progWrap.style.display='block'; prog.style.width='0%';
@@ -6090,6 +6091,7 @@ addEventListener('keydown',e=>{
         full=await generateWith(MODEL_ID, messages, txtEl);
       }catch(err2){
         err=err2;
+        window.__lcDebugErr2=err2;console.error('[LauChat debug] intento 2 fallo:',err2);
         ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
       }
       if(!full){
