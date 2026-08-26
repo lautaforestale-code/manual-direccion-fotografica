@@ -5992,6 +5992,12 @@ addEventListener('keydown',e=>{
   // (huggingface.co, su CDN "Xet") quedan fuera del camino crítico por completo.
   // El WASM del runtime sigue viniendo de raw.githubusercontent.com (nunca dio problemas).
   const SELF_HOSTED_APPCONFIG={
+    // 'indexeddb' en vez del backend por defecto ('cache', la Cache Storage API):
+    // se detectó que Cache.add()/put() de este navegador falla con "network error"
+    // al cachear archivos grandes (>~15-20MB) servidos desde nuestro propio dominio,
+    // sin importar si van comprimidos o no — un límite/bug del backend de Cache
+    // Storage con streams grandes. IndexedDB no tiene ese problema.
+    cacheBackend:'indexeddb',
     model_list:[{
       model: new URL('models/Qwen2.5-0.5B-Instruct-q4f16_1-MLC/', location.href).href,
       model_id: MODEL_ID,
