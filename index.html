@@ -5986,17 +5986,26 @@ addEventListener('keydown',e=>{
     subEl.textContent='Buscador del manual ('+reason+'): preguntá algo y te muestro los fragmentos más relevantes.';
     footEl.textContent='Búsqueda local (BM25), sin conexión a ningún servidor externo. Para respuestas generadas por IA hace falta un navegador/dispositivo con WebGPU funcional (Chrome o Edge recientes, con GPU compatible).';
   }
+  // WebGPU en celulares todavía es poco confiable para correr un modelo entero, incluso
+  // cuando navigator.gpu existe y requestAdapter() no tira error: la falla suele aparecer
+  // recién más adelante (al pedir el device o al compilar los shaders), así que no hay
+  // forma barata de detectarla antes. En vez de perseguir cada variante de error posible
+  // en cada teléfono, en móvil directamente no se ofrece la IA: siempre buscador, nunca
+  // un error confuso.
+  const IS_MOBILE=/Android|iPhone|iPad|iPod|Mobile|webOS/i.test(navigator.userAgent);
   if(!HAS_GPU) showSearchOnlyMode('tu navegador no soporta IA embebida');
-  // Chequeo real de GPU (no alcanza con que exista navigator.gpu: en varios celulares
-  // el objeto existe pero requestAdapter() falla o devuelve null porque el driver/GPU
-  // no es compatible). Se hace una sola vez, antes de intentar descargar 278MB al pedo.
-  let GPU_CHECKED=false, GPU_USABLE=HAS_GPU;
+  else if(IS_MOBILE) showSearchOnlyMode('en el celular todavía no es confiable correr IA embebida');
+  let GPU_CHECKED=false, GPU_USABLE=HAS_GPU && !IS_MOBILE;
   async function ensureGpuUsable(){
-    if(GPU_CHECKED || !HAS_GPU) return GPU_USABLE;
+    if(GPU_CHECKED || !GPU_USABLE) return GPU_USABLE;
     GPU_CHECKED=true;
     try{
       const adapter=await navigator.gpu.requestAdapter();
-      if(!adapter) GPU_USABLE=false;
+      if(!adapter){ GPU_USABLE=false; }
+      else{
+        const device=await adapter.requestDevice();
+        if(!device) GPU_USABLE=false;
+      }
     }catch(e){ GPU_USABLE=false; }
     if(!GPU_USABLE) showSearchOnlyMode('este dispositivo no tiene una GPU compatible con IA embebida');
     return GPU_USABLE;
@@ -6018,8 +6027,8 @@ addEventListener('keydown',e=>{
       model_id: MODEL_ID,
       model_lib: 'https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0_2_84/base/Qwen2-0.5B-Instruct-q4f16_1_cs1k-webgpu.wasm',
       low_resource_required: true,
-      vram_required_MB: 944.62,
-      overrides: { context_window_size: 4096 },
+      vram_required_MB: 1040,
+      overrides: { context_window_size: 8192 },
     }],
   };
   const SYS_PROMPT='Sos LauChat, el asistente del Manual de Dirección Fotográfica Cinematográfica de Lautaro Forestale. '
@@ -6030,13 +6039,13 @@ addEventListener('keydown',e=>{
     +'Sé breve y operativo: no más de cinco o seis oraciones, salvo que la pregunta pida explícitamente un desarrollo largo.';
   let ENGINE=null, ENGINE_MODEL=null, ENGINE_PROMISE=null, HISTORY=[];
 
-  // El modelo autoalojado corre con context_window_size:4096 (a propósito — subirlo
-  // implicaría más VRAM, y ya elegimos el modelo más chico pensando en dispositivos
-  // débiles). 4096 tokens ≈ 3-4 caracteres/token en español ⇒ hay que ser bien
-  // conservador con cuánto texto del manual + historial se manda, dejando lugar para
-  // el prompt de sistema y la respuesta (max_tokens:550).
+  // El modelo autoalojado corre con context_window_size:8192 (subido desde 4096 a
+  // pedido de Lautaro para que las respuestas no fueran tan pobres — implica ~100MB
+  // más de VRAM por el KV-cache más grande, aceptado como trade-off razonable). Sigue
+  // habiendo que ser cuidadoso con cuánto texto del manual + historial se manda,
+  // dejando lugar para el prompt de sistema y la respuesta (max_tokens:550).
   function buildContext(items, capChars){
-    capChars = capChars || 3200;
+    capChars = capChars || 7000;
     let ctx='', used=[];
     for(const c of items){
       const piece='['+c.capitulo+' > '+c.titulo+']\n'+c.texto+'\n\n';
@@ -6120,7 +6129,7 @@ addEventListener('keydown',e=>{
           if(HISTORY.length){
             HISTORY=[];
           }else{
-            ctx=buildContext(used.length?used:[], 1600).ctx;
+            ctx=buildContext(used.length?used:[], 3000).ctx;
           }
           messages=buildMessages(ctx, false);
           status.textContent='La conversación se hizo muy larga para el modelo, la acorté — reintentando…';
@@ -6168,8 +6177,8 @@ addEventListener('keydown',e=>{
 
     // Guardamos la respuesta recortada en el historial (no la completa: si no, el
     // historial mismo terminaría comiéndose la ventana de contexto en 2-3 preguntas).
-    HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>320?full.slice(0,320)+'…':full});
-    if(HISTORY.length>4)HISTORY=HISTORY.slice(-4);
+    HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>450?full.slice(0,450)+'…':full});
+    if(HISTORY.length>6)HISTORY=HISTORY.slice(-6);
 
     if(used.length){
       const srcWrap=document.createElement('div');
