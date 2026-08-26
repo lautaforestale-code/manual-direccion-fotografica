@@ -364,7 +364,16 @@ tr:nth-child(even) td{background:var(--panel)}
 .lc-answer .lc-role{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:7px}
 .lc-badge{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:none;padding:2px 7px;border-radius:20px;border:1px solid var(--line2);color:var(--muted)}
 .lc-badge.ia{color:var(--cyan);border-color:var(--cyan)}
-.lc-answer .lc-txt{font-family:var(--font-body);font-size:13.5px;line-height:1.65;color:var(--ink);white-space:pre-wrap}
+.lc-answer .lc-txt{font-family:var(--font-body);font-size:13.5px;line-height:1.65;color:var(--ink)}
+.lc-answer .lc-txt p{margin:0 0 10px}
+.lc-answer .lc-txt p:last-child{margin-bottom:0}
+.lc-answer .lc-txt h4{font-family:var(--font-ui);font-size:13.5px;font-weight:800;color:var(--cyan);margin:14px 0 6px}
+.lc-answer .lc-txt h4:first-child{margin-top:0}
+.lc-answer .lc-txt ul{margin:0 0 10px;padding-left:19px}
+.lc-answer .lc-txt li{margin-bottom:4px}
+.lc-answer .lc-txt hr{border:none;border-top:1px dashed var(--line2);margin:12px 0}
+.lc-answer .lc-txt code{background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:1px 5px;font-family:var(--font-mono);font-size:12px}
+.lc-answer .lc-txt strong{color:var(--ink);font-weight:800}
 .lc-answer .lc-txt.typing::after{content:'▍';color:var(--cyan);animation:lccursor .9s steps(1) infinite}
 @keyframes lccursor{50%{opacity:0}}
 .lc-sources{margin-top:12px;padding-top:11px;border-top:1px dashed var(--line2)}
@@ -6028,6 +6037,32 @@ addEventListener('keydown',e=>{
     scores.sort((a,b)=>b.score-a.score);
     return scores.slice(0,8).map(s=>chunks[s.i]);
   }
+  // Mini-renderizador de markdown para las respuestas de la IA (encabezados, negrita,
+  // cursiva, listas, código inline, separadores) — suficiente para lo que devuelve
+  // Gemini, sin depender de ninguna librería externa. Escapa HTML primero por las dudas.
+  function mdEscapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function mdInline(s){
+    s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    s=s.replace(/`([^`\n]+)`/g,'<code>$1</code>');
+    s=s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+    return s;
+  }
+  function mdToHtml(md){
+    const lines=mdEscapeHtml(md.trim()).split('\n');
+    const out=[]; let listBuf=null, paraBuf=null;
+    function flushList(){ if(listBuf){ out.push('<ul>'+listBuf.join('')+'</ul>'); listBuf=null; } }
+    function flushPara(){ if(paraBuf){ out.push('<p>'+mdInline(paraBuf.join(' '))+'</p>'); paraBuf=null; } }
+    lines.forEach(raw=>{
+      const line=raw.trim(); let m;
+      if(line===''){ flushList(); flushPara(); return; }
+      if((m=line.match(/^#{1,3}\s+(.*)$/))){ flushList(); flushPara(); out.push('<h4>'+mdInline(m[1])+'</h4>'); return; }
+      if(/^-{3,}$/.test(line)){ flushList(); flushPara(); out.push('<hr>'); return; }
+      if((m=line.match(/^[-*]\s+(.*)$/))){ flushPara(); (listBuf=listBuf||[]).push('<li>'+mdInline(m[1])+'</li>'); return; }
+      flushList(); (paraBuf=paraBuf||[]).push(line);
+    });
+    flushList(); flushPara();
+    return out.join('')||mdEscapeHtml(md);
+  }
   function splitSentences(text){
     const clean=text.replace(/\s+/g,' ').trim();
     const parts=clean.match(/[^.!?]+[.!?]+(?=\s|$)|[^.!?]+$/g)||[clean];
@@ -6110,7 +6145,7 @@ addEventListener('keydown',e=>{
   // solo al respaldo de búsqueda local, sin mostrar ningún error.
   async function callAI(q, ctx){
     const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(), 12000);
+    const timer=setTimeout(()=>controller.abort(), 30000);
     try{
       const resp=await fetch(AI_ENDPOINT, {
         method:'POST',
@@ -6145,8 +6180,11 @@ addEventListener('keydown',e=>{
     results.appendChild(answerBox);
     const txtEl=answerBox.querySelector('.lc-txt');
     const badgeEl=answerBox.querySelector('.lc-badge');
-    status.textContent='Buscando la mejor respuesta…';
+    status.textContent='Pensando…';
     scrollToEnd();
+    // Las respuestas completas pueden tardar bastante (hasta ~20-25s): este aviso
+    // evita que a los pocos segundos parezca que quedó trabado.
+    const slowNotice=setTimeout(()=>{ status.textContent='Elaborando una respuesta completa, puede tardar unos segundos más…'; }, 4000);
 
     let full='', usedFinal=used, source='ia';
     try{
@@ -6163,12 +6201,13 @@ addEventListener('keydown',e=>{
         full=used.length ? used[0].texto.slice(0,300)+'…' : 'No pude generar una respuesta ahora mismo (y el manual no tiene nada directamente relacionado con esto). Probá de nuevo en un momento.';
       }
     }
-    txtEl.textContent=full;
+    clearTimeout(slowNotice);
+    txtEl.innerHTML=mdToHtml(full);
     txtEl.classList.remove('typing');
     badgeEl.textContent = source==='ia' ? '✦ generado por IA' : '⌕ búsqueda en el manual';
     badgeEl.classList.toggle('ia', source==='ia');
 
-    HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>450?full.slice(0,450)+'…':full});
+    HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>900?full.slice(0,900)+'…':full});
     if(HISTORY.length>6)HISTORY=HISTORY.slice(-6);
 
     if(usedFinal.length){
