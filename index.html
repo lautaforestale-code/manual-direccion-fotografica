@@ -353,7 +353,7 @@ tr:nth-child(even) td{background:var(--panel)}
 .lc-newchat{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:2px 4px}
 .lc-newchat:hover{color:var(--cyan)}
 .lc-sub{font-family:var(--font-body);font-size:12.5px;color:var(--ink-dim);margin-top:6px;line-height:1.5}
-.lc-form{padding:14px 18px;border-bottom:1px solid var(--line);flex:0 0 auto;display:flex;gap:8px}
+.lc-form{padding:14px 18px;border-top:1px solid var(--line);flex:0 0 auto;display:flex;gap:8px}
 .lc-form input{
   flex:1;background:var(--panel3);border:1px solid var(--line2);color:var(--ink);
   padding:10px 12px;border-radius:9px;font-family:var(--font-ui);font-size:13.5px;
@@ -454,15 +454,15 @@ tr:nth-child(even) td{background:var(--panel)}
     <div class="lc-brand"><b>◈ LAUCHAT AI</b><span style="display:flex;align-items:center;gap:10px"><button class="lc-newchat" id="lcNewChat" aria-label="Nueva conversación" title="Nueva conversación">↺</button><button class="lc-close" id="lcClose" aria-label="Cerrar">×</button></span></div>
     <div class="lc-sub" id="lcSub">Es como si te respondiera Lautaro mismo: preguntá lo que quieras sobre el manual, cine o dirección de fotografía.</div>
   </div>
+  <div class="lc-results" id="lcResults">
+    <div class="lc-empty">Preguntá lo que quieras — sobre el manual, sobre cine, sobre el oficio en general — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b>. LauChat AI conoce todo el manual y responde citando capítulo y sección cuando corresponde.</div>
+  </div>
+  <div class="lc-status" id="lcStatus"></div>
+  <div class="lc-progwrap" id="lcProgWrap"><div class="lc-prog" id="lcProg"></div></div>
   <form class="lc-form" id="lcForm">
     <input id="lcInput" type="search" placeholder="Ej: cómo calculo un ratio de contraste…" autocomplete="off">
     <button type="submit">Preguntar</button>
   </form>
-  <div class="lc-status" id="lcStatus"></div>
-  <div class="lc-progwrap" id="lcProgWrap"><div class="lc-prog" id="lcProg"></div></div>
-  <div class="lc-results" id="lcResults">
-    <div class="lc-empty">Preguntá lo que quieras — sobre el manual, sobre cine, sobre el oficio en general — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b>. LauChat AI conoce todo el manual y responde citando capítulo y sección cuando corresponde.</div>
-  </div>
   <div class="lc-foot" id="lcFoot">LauChat AI prioriza una respuesta generada por IA; si no está disponible, te muestra el pasaje más relevante del propio manual.</div>
 </aside>
 
