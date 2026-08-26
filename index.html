@@ -411,7 +411,7 @@ tr:nth-child(even) td{background:var(--panel)}
   <div class="lc-results" id="lcResults">
     <div class="lc-empty">Preguntá algo del manual — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b> — y LauChat te responde con el modelo de IA que corre en tu propio navegador, citando capítulo y sección. La primera vez descarga el modelo de IA; después queda en caché en tu navegador y arranca al instante.</div>
   </div>
-  <div class="lc-foot" id="lcFoot">Corre 100% en tu navegador (WebGPU), sin conexión a ningún servidor externo — ni el modelo ni tus preguntas salen de la máquina. Si el navegador no soporta IA embebida, LauChat cae automáticamente a modo búsqueda.</div>
+  <div class="lc-foot" id="lcFoot">El modelo se descarga una sola vez (puede fallar si tenés un bloqueador de anuncios activo — probá en incógnito) y después corre 100% en tu navegador: tus preguntas nunca salen de la máquina. Si el navegador no soporta IA embebida, LauChat cae automáticamente a modo búsqueda.</div>
 </aside>
 
 <!-- ================= MAIN ================= -->
@@ -6078,7 +6078,7 @@ addEventListener('keydown',e=>{
         const isNetwork=/fetch|network|ERR_FAILED|failed to download|xet|download/i.test(msg);
         const isGpu=/device was lost|gpu|dxgi|webgpu|adapter/i.test(msg);
         if(isNetwork){
-          full='No pude descargar el modelo de IA (falló la conexión con el servidor de modelos). Puede ser algo puntual de tu red — recargá la página y probá de nuevo. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+          full='No pude descargar el modelo de IA (falló la conexión con el servidor de modelos). Lo más común es que un bloqueador de anuncios/rastreadores esté frenando la descarga — probá pausarlo para este sitio, o abrir la página en una ventana de incógnito, y volvé a intentar. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
         }else if(isGpu){
           full='No pude generar una respuesta con IA en este navegador (problema de GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
         }else{
