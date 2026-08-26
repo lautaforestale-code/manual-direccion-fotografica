@@ -6030,11 +6030,17 @@ addEventListener('keydown',e=>{
     +'Sé breve y operativo: no más de cinco o seis oraciones, salvo que la pregunta pida explícitamente un desarrollo largo.';
   let ENGINE=null, ENGINE_MODEL=null, ENGINE_PROMISE=null, HISTORY=[];
 
-  function buildContext(items){
+  // El modelo autoalojado corre con context_window_size:4096 (a propósito — subirlo
+  // implicaría más VRAM, y ya elegimos el modelo más chico pensando en dispositivos
+  // débiles). 4096 tokens ≈ 3-4 caracteres/token en español ⇒ hay que ser bien
+  // conservador con cuánto texto del manual + historial se manda, dejando lugar para
+  // el prompt de sistema y la respuesta (max_tokens:550).
+  function buildContext(items, capChars){
+    capChars = capChars || 3200;
     let ctx='', used=[];
     for(const c of items){
       const piece='['+c.capitulo+' > '+c.titulo+']\n'+c.texto+'\n\n';
-      if(ctx.length+piece.length>28000)break;
+      if(ctx.length+piece.length>capChars)break;
       ctx+=piece; used.push(c);
     }
     return {ctx, used};
@@ -6074,7 +6080,7 @@ addEventListener('keydown',e=>{
   }
 
   async function askAI(q, items){
-    const {ctx, used}=buildContext(items);
+    let {ctx, used}=buildContext(items);
     progWrap.style.display='block';
     status.textContent='Cargando el modelo de IA…';
 
@@ -6085,11 +6091,14 @@ addEventListener('keydown',e=>{
     results.appendChild(answerBox);
     const txtEl=answerBox.querySelector('.lc-txt');
 
-    const messages=[
-      {role:'system', content: SYS_PROMPT+'\n\nFRAGMENTOS DEL MANUAL:\n'+ctx},
-      ...HISTORY,
-      {role:'user', content:q}
-    ];
+    function buildMessages(ctxTxt, useHistory){
+      return [
+        {role:'system', content: SYS_PROMPT+'\n\nFRAGMENTOS DEL MANUAL:\n'+ctxTxt},
+        ...(useHistory?HISTORY:[]),
+        {role:'user', content:q}
+      ];
+    }
+    let messages=buildMessages(ctx, true);
     let full='', lastErr=null;
     const ATTEMPTS=3;
     for(let attempt=1; attempt<=ATTEMPTS; attempt++){
@@ -6101,6 +6110,23 @@ addEventListener('keydown',e=>{
         lastErr=err;
         // eslint-disable-next-line no-console
         console.error('[LauChat] intento '+attempt+'/'+ATTEMPTS+' falló:', err);
+        const msg=String(err&&(err.message||err));
+        const isContextOverflow=err&&err.name==='ContextWindowSizeExceededError'
+          || /context window|prompt tokens exceed/i.test(msg);
+        if(isContextOverflow && attempt<ATTEMPTS){
+          // Reintentar con el mismo prompt es inútil (va a fallar igual, siempre):
+          // primero soltamos el historial de la conversación, y si con eso no alcanza,
+          // además achicamos los fragmentos del manual que se le pasan de contexto.
+          if(HISTORY.length){
+            HISTORY=[];
+          }else{
+            ctx=buildContext(used.length?used:[], 1600).ctx;
+          }
+          messages=buildMessages(ctx, false);
+          status.textContent='La conversación se hizo muy larga para el modelo, la acorté — reintentando…';
+          progWrap.style.display='none';
+          continue;
+        }
         ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
         if(attempt<ATTEMPTS){
           status.textContent='Falló, reintentando… ('+attempt+'/'+(ATTEMPTS-1)+')';
@@ -6123,9 +6149,13 @@ addEventListener('keydown',e=>{
       const err=lastErr;
       progWrap.style.display='none';
       const msg=String(err&&(err.message||err));
+      const isContext=err&&err.name==='ContextWindowSizeExceededError'
+        || /context window|prompt tokens exceed/i.test(msg);
       const isNetwork=/fetch|network|ERR_FAILED|failed to download|xet|download/i.test(msg);
       const isGpu=/device was lost|gpu|dxgi|webgpu|adapter/i.test(msg);
-      if(isNetwork){
+      if(isContext){
+        full='Esa pregunta (sumada a lo que ya charlamos) fue demasiado larga para el modelo liviano que corre en tu navegador. Probá de nuevo — ya recorté la conversación — o hacé una pregunta más corta y puntual. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+      }else if(isNetwork){
         full='No pude descargar el modelo de IA (falló la conexión, probablemente tu red o la conexión se cortó a mitad de la descarga). Revisá tu conexión y volvé a intentar — el modelo se sirve desde este mismo sitio, así que no debería depender de servidores externos. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
       }else if(isGpu){
         full='No pude generar una respuesta con IA en este navegador (problema de GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
@@ -6136,8 +6166,10 @@ addEventListener('keydown',e=>{
     }
     txtEl.classList.remove('typing');
 
-    HISTORY.push({role:'user',content:q},{role:'assistant',content:full});
-    if(HISTORY.length>6)HISTORY=HISTORY.slice(-6);
+    // Guardamos la respuesta recortada en el historial (no la completa: si no, el
+    // historial mismo terminaría comiéndose la ventana de contexto en 2-3 preguntas).
+    HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>320?full.slice(0,320)+'…':full});
+    if(HISTORY.length>4)HISTORY=HISTORY.slice(-4);
 
     if(used.length){
       const srcWrap=document.createElement('div');
