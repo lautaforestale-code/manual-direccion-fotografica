@@ -411,7 +411,7 @@ tr:nth-child(even) td{background:var(--panel)}
   <div class="lc-results" id="lcResults">
     <div class="lc-empty">Preguntá algo del manual — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b> — y LauChat te responde con el modelo de IA que corre en tu propio navegador, citando capítulo y sección. La primera vez descarga el modelo de IA; después queda en caché en tu navegador y arranca al instante.</div>
   </div>
-  <div class="lc-foot" id="lcFoot">El modelo se descarga una sola vez desde este mismo sitio y después corre 100% en tu navegador: tus preguntas nunca salen de la máquina. Si el navegador no soporta IA embebida, LauChat cae automáticamente a modo búsqueda.</div>
+  <div class="lc-foot" id="lcFoot">LauChat prioriza una respuesta generada por IA; si no está disponible, te muestra el pasaje más relevante del propio manual.</div>
 </aside>
 
 <!-- ================= MAIN ================= -->
@@ -5901,13 +5901,34 @@ addEventListener('keydown',e=>{
     'esta','esto','estos','estas','este','ese','esa','esos','esas','pero','sus','sobre','entre','cuando',
     'donde','hay','muy','mas','mas','solo','tambien','desde','todo','toda','todos','todas','otro','otra',
     'otros','otras','puede','pueden','debe','deben','ser','son','fue','han','fueron','tiene','tienen',
-    'era','eran','the','and','for']);
+    'era','eran','the','and','for','sirve','sirven','hace','hacen','uso','usa','usan','significa',
+    'significan','llama','llaman','explicar','explica','decir','entender','saber','manera','forma',
+    'tipo','tipos','sabe','saben','existe','existen']);
+  // Sin\u00f3nimos y vocabulario t\u00e9cnico del oficio: cada t\u00e9rmino se expande a sus alternativas
+  // al buscar, para pescar m\u00e1s formas de preguntar lo mismo sin necesidad de IA generativa.
+  const SYNONYMS={
+    diafragma:['apertura','iris','fstop','tstop'], apertura:['diafragma','iris','fstop'],
+    obturador:['obturacion','shutter'], obturacion:['obturador','shutter'],
+    lente:['objetivo','lentes','objetivos'], objetivo:['lente','lentes','objetivos'],
+    foco:['enfoque','enfocar'], enfoque:['foco','enfocar'],
+    ruido:['grano','noise'], grano:['ruido','noise'],
+    profundidad:['dof','pdc'], camara:['camaras'], sensor:['ccd','cmos'],
+    iso:['sensibilidad','ganancia','asa'], balance:['temperatura','wb'], kelvin:['temperatura','mired'],
+    contraste:['ratio','relacion'], exposicion:['exponer','exponiendo'],
+    anamorfico:['anamorficos','anamorfica'], esferico:['esfericos','esferica'],
+    dolly:['travelling','carrito'], led:['leds'], bayer:['mosaico'], rodante:['rolling'],
+  };
   function normalize(s){
     return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   }
   function tokenize(s){
     const toks=normalize(s).match(/[a-z0-9]+/g)||[];
     return toks.filter(t=>(t.length>=3||/^[0-9]+$/.test(t))&&!STOP.has(t));
+  }
+  function expandTokens(toks){
+    const set=new Set(toks);
+    toks.forEach(t=>{ if(SYNONYMS[t]) SYNONYMS[t].forEach(s=>set.add(normalize(s))); });
+    return [...set];
   }
   function buildIndex(chunks){
     const df=new Map();
@@ -5923,17 +5944,23 @@ addEventListener('keydown',e=>{
     const avgdl=docs.reduce((a,d)=>a+d.len,0)/N;
     return {docs, df, N, avgdl};
   }
+  function idfOf(idx,t){
+    const dfT=idx.df.get(t)||0;
+    if(dfT===0)return 0;
+    return Math.log(1+(idx.N-dfT+0.5)/(dfT+0.5));
+  }
   function search(query, chunks, idx){
-    const qToks=[...new Set(tokenize(query))];
-    if(qToks.length===0)return[];
+    const qToksRaw=[...new Set(tokenize(query))];
+    if(qToksRaw.length===0)return[];
+    const qToks=expandTokens(qToksRaw);
     const k1=1.5, b=0.75;
-    const need=qToks.length<=2?qToks.length:Math.max(2, qToks.length-2);
+    const need=qToksRaw.length<=2?qToksRaw.length:Math.max(2, qToksRaw.length-2);
     const scores=idx.docs.map((d,i)=>{
       let score=0, matched=0;
       qToks.forEach(t=>{
         const dfT=idx.df.get(t)||0;
         if(dfT===0)return;
-        const idf=Math.log(1+(idx.N-dfT+0.5)/(dfT+0.5));
+        const idf=idfOf(idx,t);
         const tf=d.tf.get(t)||0;
         let hit=false;
         if(tf>0){
@@ -5947,6 +5974,34 @@ addEventListener('keydown',e=>{
     }).filter(s=>s.score>0.01 && s.matched>=need);
     scores.sort((a,b)=>b.score-a.score);
     return scores.slice(0,8).map(s=>chunks[s.i]);
+  }
+  function splitSentences(text){
+    const clean=text.replace(/\s+/g,' ').trim();
+    const parts=clean.match(/[^.!?]+[.!?]+(?=\s|$)|[^.!?]+$/g)||[clean];
+    return parts.map(p=>p.trim()).filter(p=>p.length>15);
+  }
+  // Respuesta extractiva: en vez de generar texto, encuentra la oración (más la
+  // siguiente, como contexto) que mejor responde a la consulta dentro de los
+  // fragmentos más relevantes ya encontrados por BM25. Es el respaldo cuando la
+  // IA generativa no está disponible — y funciona sin IA, sin descargas, siempre.
+  function extractBestPassage(query, topChunks, idx){
+    const qToksRaw=[...new Set(tokenize(query))];
+    const qToks=expandTokens(qToksRaw);
+    let best=null;
+    topChunks.forEach(c=>{
+      const sentences=splitSentences(c.texto);
+      sentences.forEach((sent,si)=>{
+        const sSet=new Set(tokenize(sent));
+        let score=0, matched=0;
+        qToks.forEach(t=>{ if(sSet.has(t)){ score+=idfOf(idx,t)||0.5; matched++; } });
+        if(score>0 && (!best||score>best.score)) best={score,matched,sentence:sent,chunk:c,index:si,sentences};
+      });
+    });
+    if(!best||best.matched<1) return null;
+    let passage=best.sentence;
+    const next=best.sentences[best.index+1];
+    if(next && (passage.length+next.length)<420) passage+=' '+next;
+    return {passage, chunk:best.chunk};
   }
 
   function goToChunk(c){
@@ -5978,74 +6033,16 @@ addEventListener('keydown',e=>{
     });
   }
 
-  /* ---- Capa de IA: WebLLM + WebGPU, con degradación a búsqueda ---- */
-  const HAS_GPU=!!navigator.gpu;
-  const progWrap=document.getElementById('lcProgWrap'), prog=document.getElementById('lcProg');
+  /* ---- Respuesta: IA real en servidor propio (gratis) + respaldo local sin IA ---- */
   const subEl=document.getElementById('lcSub'), footEl=document.getElementById('lcFoot');
-  function showSearchOnlyMode(reason){
-    subEl.textContent='Buscador del manual ('+reason+'): preguntá algo y te muestro los fragmentos más relevantes.';
-    footEl.textContent='Búsqueda local (BM25), sin conexión a ningún servidor externo. Para respuestas generadas por IA hace falta un navegador/dispositivo con WebGPU funcional (Chrome o Edge recientes, con GPU compatible).';
-  }
-  // WebGPU en celulares todavía es poco confiable para correr un modelo entero, incluso
-  // cuando navigator.gpu existe y requestAdapter() no tira error: la falla suele aparecer
-  // recién más adelante (al pedir el device o al compilar los shaders), así que no hay
-  // forma barata de detectarla antes. En vez de perseguir cada variante de error posible
-  // en cada teléfono, en móvil directamente no se ofrece la IA: siempre buscador, nunca
-  // un error confuso.
-  const IS_MOBILE=/Android|iPhone|iPad|iPod|Mobile|webOS/i.test(navigator.userAgent);
-  if(!HAS_GPU) showSearchOnlyMode('tu navegador no soporta IA embebida');
-  else if(IS_MOBILE) showSearchOnlyMode('en el celular todavía no es confiable correr IA embebida');
-  let GPU_CHECKED=false, GPU_USABLE=HAS_GPU && !IS_MOBILE;
-  async function ensureGpuUsable(){
-    if(GPU_CHECKED || !GPU_USABLE) return GPU_USABLE;
-    GPU_CHECKED=true;
-    try{
-      const adapter=await navigator.gpu.requestAdapter();
-      if(!adapter){ GPU_USABLE=false; }
-      else{
-        const device=await adapter.requestDevice();
-        if(!device) GPU_USABLE=false;
-      }
-    }catch(e){ GPU_USABLE=false; }
-    if(!GPU_USABLE) showSearchOnlyMode('este dispositivo no tiene una GPU compatible con IA embebida');
-    return GPU_USABLE;
-  }
-  const MODEL_ID='Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
-  // Pesos del modelo alojados en el propio sitio (mismo origen que el manual) para que
-  // bloqueadores de anuncios/rastreadores nunca los frenen: los dominios de terceros
-  // (huggingface.co, su CDN "Xet") quedan fuera del camino crítico por completo.
-  // El WASM del runtime sigue viniendo de raw.githubusercontent.com (nunca dio problemas).
-  const SELF_HOSTED_APPCONFIG={
-    // 'indexeddb' en vez del backend por defecto ('cache', la Cache Storage API):
-    // se detectó que Cache.add()/put() de este navegador falla con "network error"
-    // al cachear archivos grandes (>~15-20MB) servidos desde nuestro propio dominio,
-    // sin importar si van comprimidos o no — un límite/bug del backend de Cache
-    // Storage con streams grandes. IndexedDB no tiene ese problema.
-    cacheBackend:'indexeddb',
-    model_list:[{
-      model: new URL('models/Qwen2.5-0.5B-Instruct-q4f16_1-MLC/', location.href).href,
-      model_id: MODEL_ID,
-      model_lib: 'https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0_2_84/base/Qwen2-0.5B-Instruct-q4f16_1_cs1k-webgpu.wasm',
-      low_resource_required: true,
-      vram_required_MB: 1040,
-      overrides: { context_window_size: 8192 },
-    }],
-  };
-  const SYS_PROMPT='Sos LauChat, el asistente del Manual de Dirección Fotográfica Cinematográfica de Lautaro Forestale. '
-    +'Respondé ÚNICAMENTE usando los fragmentos de contexto que se te dan a continuación, extraídos del propio manual. '
-    +'Si la respuesta no está en esos fragmentos, decilo con claridad — no inventes ni completes con conocimiento general. '
-    +'Citá siempre el capítulo y la sección de donde sacás la información. '
-    +'Respondé en español rioplatense, con voseo, en el mismo tono técnico y directo del manual. '
-    +'Sé breve y operativo: no más de cinco o seis oraciones, salvo que la pregunta pida explícitamente un desarrollo largo.';
-  let ENGINE=null, ENGINE_MODEL=null, ENGINE_PROMISE=null, HISTORY=[];
+  subEl.textContent='Preguntale algo a LauChat: busca en todo el manual y te arma una respuesta.';
+  footEl.textContent='LauChat prioriza una respuesta generada por IA (servidor propio, gratuito, tus preguntas no se guardan). Si no está disponible en tu red en este momento, te muestra igual el pasaje más relevante del propio manual — nunca es un error, siempre contesta algo útil.';
 
-  // El modelo autoalojado corre con context_window_size:8192 (subido desde 4096 a
-  // pedido de Lautaro para que las respuestas no fueran tan pobres — implica ~100MB
-  // más de VRAM por el KV-cache más grande, aceptado como trade-off razonable). Sigue
-  // habiendo que ser cuidadoso con cuánto texto del manual + historial se manda,
-  // dejando lugar para el prompt de sistema y la respuesta (max_tokens:550).
+  const AI_ENDPOINT='https://lauchat-proxy.lauchat-worker.workers.dev';
+  let HISTORY=[];
+
   function buildContext(items, capChars){
-    capChars = capChars || 7000;
+    capChars = capChars || 6000;
     let ctx='', used=[];
     for(const c of items){
       const piece='['+c.capitulo+' > '+c.titulo+']\n'+c.texto+'\n\n';
@@ -6055,136 +6052,64 @@ addEventListener('keydown',e=>{
     return {ctx, used};
   }
 
-  async function ensureEngine(onProgress, modelId){
-    if(ENGINE && ENGINE_MODEL===modelId)return ENGINE;
-    if(!ENGINE_PROMISE || ENGINE_MODEL!==modelId){
-      ENGINE_MODEL=modelId;
-      ENGINE_PROMISE=(async()=>{
-        const webllm=await import('https://esm.run/@mlc-ai/web-llm');
-        const engine=await webllm.CreateMLCEngine(modelId,{initProgressCallback:onProgress,logLevel:'ERROR',appConfig:SELF_HOSTED_APPCONFIG});
-        ENGINE=engine;
-        return engine;
-      })().catch(err=>{ENGINE_PROMISE=null;throw err;});
+  // Le pide la respuesta al servidor de IA con un tiempo límite corto: si la red del
+  // lector bloquea el dominio (pasa con algunos antivirus/routers) o el servidor no
+  // contesta, no queremos dejar la pregunta esperando — a los pocos segundos se cae
+  // solo al respaldo de búsqueda local, sin mostrar ningún error.
+  async function callAI(q, ctx){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(), 12000);
+    try{
+      const resp=await fetch(AI_ENDPOINT, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({question:q, context:ctx, history:HISTORY}),
+        signal:controller.signal,
+      });
+      if(!resp.ok) throw new Error('http '+resp.status);
+      const data=await resp.json();
+      if(!data.answer) throw new Error('sin respuesta');
+      return data.answer;
+    } finally {
+      clearTimeout(timer);
     }
-    return ENGINE_PROMISE;
   }
 
-  // Genera con un modelo dado; devuelve el texto final o lanza si falla.
-  async function generateWith(modelId, messages, txtEl){
-    const engine=await ensureEngine(report=>{
-      const pct=Math.round((report.progress||0)*100);
-      prog.style.width=pct+'%';
-      status.textContent=report.text||'Cargando modelo…';
-    }, modelId);
-    progWrap.style.display='none';
-    status.textContent='Generando respuesta…';
-    const stream=await engine.chat.completions.create({messages, stream:true, temperature:0.4, max_tokens:550});
-    let full='';
-    for await (const ch of stream){
-      full+=ch.choices?.[0]?.delta?.content||'';
-      txtEl.textContent=full;
-      results.scrollTop=results.scrollHeight;
-    }
-    return full;
-  }
-
-  async function askAI(q, items){
-    let {ctx, used}=buildContext(items);
-    progWrap.style.display='block';
-    status.textContent='Cargando el modelo de IA…';
-
+  async function answer(q, items){
+    const {ctx, used}=buildContext(items);
     results.innerHTML='';
     const answerBox=document.createElement('div');
     answerBox.className='lc-answer';
-    answerBox.innerHTML='<div class="lc-role">◈ LauChat</div><div class="lc-txt typing"></div>';
+    answerBox.innerHTML='<div class="lc-role">◈ LauChat</div><div class="lc-txt typing">Pensando…</div>';
     results.appendChild(answerBox);
     const txtEl=answerBox.querySelector('.lc-txt');
+    status.textContent='Buscando la mejor respuesta…';
 
-    function buildMessages(ctxTxt, useHistory){
-      return [
-        {role:'system', content: SYS_PROMPT+'\n\nFRAGMENTOS DEL MANUAL:\n'+ctxTxt},
-        ...(useHistory?HISTORY:[]),
-        {role:'user', content:q}
-      ];
-    }
-    let messages=buildMessages(ctx, true);
-    let full='', lastErr=null;
-    const ATTEMPTS=3;
-    for(let attempt=1; attempt<=ATTEMPTS; attempt++){
-      try{
-        full=await generateWith(MODEL_ID, messages, txtEl);
-        lastErr=null;
-        break;
-      }catch(err){
-        lastErr=err;
-        // eslint-disable-next-line no-console
-        console.error('[LauChat] intento '+attempt+'/'+ATTEMPTS+' falló:', err);
-        const msg=String(err&&(err.message||err));
-        const isContextOverflow=err&&err.name==='ContextWindowSizeExceededError'
-          || /context window|prompt tokens exceed/i.test(msg);
-        if(isContextOverflow && attempt<ATTEMPTS){
-          // Reintentar con el mismo prompt es inútil (va a fallar igual, siempre):
-          // primero soltamos el historial de la conversación, y si con eso no alcanza,
-          // además achicamos los fragmentos del manual que se le pasan de contexto.
-          if(HISTORY.length){
-            HISTORY=[];
-          }else{
-            ctx=buildContext(used.length?used:[], 3000).ctx;
-          }
-          messages=buildMessages(ctx, false);
-          status.textContent='La conversación se hizo muy larga para el modelo, la acorté — reintentando…';
-          progWrap.style.display='none';
-          continue;
-        }
-        ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
-        if(attempt<ATTEMPTS){
-          status.textContent='Falló, reintentando… ('+attempt+'/'+(ATTEMPTS-1)+')';
-          progWrap.style.display='block'; prog.style.width='0%';
-          if(attempt===ATTEMPTS-1){
-            // Antes del último intento: por si el caché del navegador quedó en un
-            // estado corrupto/parcial de un intento previo (esto explica el patrón
-            // "funcionó una vez y después no más" que reportaron algunos lectores),
-            // se lo limpia por completo y se arranca de cero.
-            try{
-              const webllm=await import('https://esm.run/@mlc-ai/web-llm');
-              await webllm.deleteModelAllInfoInCache(MODEL_ID, SELF_HOSTED_APPCONFIG);
-            }catch(_){/* best-effort */}
-          }
-          await new Promise(r=>setTimeout(r,700));
-        }
-      }
-    }
-    if(!full && lastErr){
-      const err=lastErr;
-      progWrap.style.display='none';
-      const msg=String(err&&(err.message||err));
-      const isContext=err&&err.name==='ContextWindowSizeExceededError'
-        || /context window|prompt tokens exceed/i.test(msg);
-      const isNetwork=/fetch|network|ERR_FAILED|failed to download|xet|download/i.test(msg);
-      const isGpu=/device was lost|gpu|dxgi|webgpu|adapter/i.test(msg);
-      if(isContext){
-        full='Esa pregunta (sumada a lo que ya charlamos) fue demasiado larga para el modelo liviano que corre en tu navegador. Probá de nuevo — ya recorté la conversación — o hacé una pregunta más corta y puntual. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
-      }else if(isNetwork){
-        full='No pude descargar el modelo de IA (falló la conexión, probablemente tu red o la conexión se cortó a mitad de la descarga). Revisá tu conexión y volvé a intentar — el modelo se sirve desde este mismo sitio, así que no debería depender de servidores externos. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
-      }else if(isGpu){
-        full='No pude generar una respuesta con IA en este navegador (problema de GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+    let full='', usedFinal=used;
+    try{
+      full=await callAI(q, ctx);
+    }catch(err){
+      // eslint-disable-next-line no-console
+      console.warn('[LauChat] IA no disponible ahora, uso el respaldo local:', err);
+      const extracted=extractBestPassage(q, items.slice(0,5), IDX);
+      if(extracted){
+        full=extracted.passage;
+        usedFinal=[extracted.chunk, ...used.filter(c=>c.id!==extracted.chunk.id)].slice(0,6);
       }else{
-        full='No pude generar una respuesta con IA en este navegador. Recargá la página y probá de nuevo. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+        full=used.length ? used[0].texto.slice(0,300)+'…' : 'No encontré una respuesta directa — mirá los fragmentos relacionados abajo.';
       }
-      txtEl.textContent=full;
     }
+    txtEl.textContent=full;
     txtEl.classList.remove('typing');
 
-    // Guardamos la respuesta recortada en el historial (no la completa: si no, el
-    // historial mismo terminaría comiéndose la ventana de contexto en 2-3 preguntas).
     HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>450?full.slice(0,450)+'…':full});
     if(HISTORY.length>6)HISTORY=HISTORY.slice(-6);
 
-    if(used.length){
+    if(usedFinal.length){
       const srcWrap=document.createElement('div');
       srcWrap.className='lc-sources';
       srcWrap.innerHTML='<div class="lc-slabel">Fuentes</div>';
-      used.forEach(c=>{
+      usedFinal.forEach(c=>{
         const chip=document.createElement('span');
         chip.className='lc-chip';
         chip.textContent=c.capitulo+' · '+c.titulo;
@@ -6209,9 +6134,7 @@ addEventListener('keydown',e=>{
     await new Promise(r=>setTimeout(r,10));
     const items=search(q, CHUNKS, IDX);
     if(items.length===0){renderResults(items);return;}
-    const gpuOk=await ensureGpuUsable();
-    if(!gpuOk){renderResults(items);return;}
-    askAI(q, items);
+    answer(q, items);
   });
 })();
 
