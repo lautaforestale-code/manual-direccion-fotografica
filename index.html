@@ -411,7 +411,7 @@ tr:nth-child(even) td{background:var(--panel)}
   <div class="lc-results" id="lcResults">
     <div class="lc-empty">Preguntá algo del manual — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b> — y LauChat te responde con el modelo de IA que corre en tu propio navegador, citando capítulo y sección. La primera vez descarga el modelo de IA; después queda en caché en tu navegador y arranca al instante.</div>
   </div>
-  <div class="lc-foot" id="lcFoot">El modelo se descarga una sola vez (puede fallar si tenés un bloqueador de anuncios activo — probá en incógnito) y después corre 100% en tu navegador: tus preguntas nunca salen de la máquina. Si el navegador no soporta IA embebida, LauChat cae automáticamente a modo búsqueda.</div>
+  <div class="lc-foot" id="lcFoot">El modelo se descarga una sola vez desde este mismo sitio y después corre 100% en tu navegador: tus preguntas nunca salen de la máquina. Si el navegador no soporta IA embebida, LauChat cae automáticamente a modo búsqueda.</div>
 </aside>
 
 <!-- ================= MAIN ================= -->
@@ -5987,6 +5987,20 @@ addEventListener('keydown',e=>{
     footEl.textContent='Búsqueda local (BM25), sin conexión a ningún servidor externo. Para respuestas generadas por IA hace falta un navegador con WebGPU (Chrome o Edge recientes).';
   }
   const MODEL_ID='Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
+  // Pesos del modelo alojados en el propio sitio (mismo origen que el manual) para que
+  // bloqueadores de anuncios/rastreadores nunca los frenen: los dominios de terceros
+  // (huggingface.co, su CDN "Xet") quedan fuera del camino crítico por completo.
+  // El WASM del runtime sigue viniendo de raw.githubusercontent.com (nunca dio problemas).
+  const SELF_HOSTED_APPCONFIG={
+    model_list:[{
+      model: new URL('models/Qwen2.5-0.5B-Instruct-q4f16_1-MLC/', location.href).href,
+      model_id: MODEL_ID,
+      model_lib: 'https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0_2_84/base/Qwen2-0.5B-Instruct-q4f16_1_cs1k-webgpu.wasm',
+      low_resource_required: true,
+      vram_required_MB: 944.62,
+      overrides: { context_window_size: 4096 },
+    }],
+  };
   const SYS_PROMPT='Sos LauChat, el asistente del Manual de Dirección Fotográfica Cinematográfica de Lautaro Forestale. '
     +'Respondé ÚNICAMENTE usando los fragmentos de contexto que se te dan a continuación, extraídos del propio manual. '
     +'Si la respuesta no está en esos fragmentos, decilo con claridad — no inventes ni completes con conocimiento general. '
@@ -6011,7 +6025,7 @@ addEventListener('keydown',e=>{
       ENGINE_MODEL=modelId;
       ENGINE_PROMISE=(async()=>{
         const webllm=await import('https://esm.run/@mlc-ai/web-llm');
-        const engine=await webllm.CreateMLCEngine(modelId,{initProgressCallback:onProgress,logLevel:'ERROR'});
+        const engine=await webllm.CreateMLCEngine(modelId,{initProgressCallback:onProgress,logLevel:'ERROR',appConfig:SELF_HOSTED_APPCONFIG});
         ENGINE=engine;
         return engine;
       })().catch(err=>{ENGINE_PROMISE=null;throw err;});
@@ -6078,7 +6092,7 @@ addEventListener('keydown',e=>{
         const isNetwork=/fetch|network|ERR_FAILED|failed to download|xet|download/i.test(msg);
         const isGpu=/device was lost|gpu|dxgi|webgpu|adapter/i.test(msg);
         if(isNetwork){
-          full='No pude descargar el modelo de IA (falló la conexión con el servidor de modelos). Lo más común es que un bloqueador de anuncios/rastreadores esté frenando la descarga — probá pausarlo para este sitio, o abrir la página en una ventana de incógnito, y volvé a intentar. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+          full='No pude descargar el modelo de IA (falló la conexión, probablemente tu red o la conexión se cortó a mitad de la descarga). Revisá tu conexión y volvé a intentar — el modelo se sirve desde este mismo sitio, así que no debería depender de servidores externos. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
         }else if(isGpu){
           full='No pude generar una respuesta con IA en este navegador (problema de GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
         }else{
