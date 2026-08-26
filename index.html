@@ -6227,7 +6227,7 @@ addEventListener('keydown',e=>{
   // solo al respaldo de búsqueda local, sin mostrar ningún error.
   async function callAI(q, ctx){
     const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(), 30000);
+    const timer=setTimeout(()=>controller.abort(), 38000);
     try{
       const resp=await fetch(AI_ENDPOINT, {
         method:'POST',
