@@ -5982,9 +5982,24 @@ addEventListener('keydown',e=>{
   const HAS_GPU=!!navigator.gpu;
   const progWrap=document.getElementById('lcProgWrap'), prog=document.getElementById('lcProg');
   const subEl=document.getElementById('lcSub'), footEl=document.getElementById('lcFoot');
-  if(!HAS_GPU){
-    subEl.textContent='Buscador del manual (tu navegador no soporta IA embebida): preguntá algo y te muestro los fragmentos más relevantes.';
-    footEl.textContent='Búsqueda local (BM25), sin conexión a ningún servidor externo. Para respuestas generadas por IA hace falta un navegador con WebGPU (Chrome o Edge recientes).';
+  function showSearchOnlyMode(reason){
+    subEl.textContent='Buscador del manual ('+reason+'): preguntá algo y te muestro los fragmentos más relevantes.';
+    footEl.textContent='Búsqueda local (BM25), sin conexión a ningún servidor externo. Para respuestas generadas por IA hace falta un navegador/dispositivo con WebGPU funcional (Chrome o Edge recientes, con GPU compatible).';
+  }
+  if(!HAS_GPU) showSearchOnlyMode('tu navegador no soporta IA embebida');
+  // Chequeo real de GPU (no alcanza con que exista navigator.gpu: en varios celulares
+  // el objeto existe pero requestAdapter() falla o devuelve null porque el driver/GPU
+  // no es compatible). Se hace una sola vez, antes de intentar descargar 278MB al pedo.
+  let GPU_CHECKED=false, GPU_USABLE=HAS_GPU;
+  async function ensureGpuUsable(){
+    if(GPU_CHECKED || !HAS_GPU) return GPU_USABLE;
+    GPU_CHECKED=true;
+    try{
+      const adapter=await navigator.gpu.requestAdapter();
+      if(!adapter) GPU_USABLE=false;
+    }catch(e){ GPU_USABLE=false; }
+    if(!GPU_USABLE) showSearchOnlyMode('este dispositivo no tiene una GPU compatible con IA embebida');
+    return GPU_USABLE;
   }
   const MODEL_ID='Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
   // Pesos del modelo alojados en el propio sitio (mismo origen que el manual) para que
@@ -6075,37 +6090,49 @@ addEventListener('keydown',e=>{
       ...HISTORY,
       {role:'user', content:q}
     ];
-    let full='';
-    try{
-      full=await generateWith(MODEL_ID, messages, txtEl);
-    }catch(err1){
-      // Primer intento fallido: puede ser un problema de red transitorio (falla al bajar
-      // algún fragmento del modelo) o un problema real de GPU. Descartamos el engine y
-      // probamos una vez más antes de rendirnos — muchas fallas de red son puntuales.
-      ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
-      status.textContent='Falló, reintentando…';
-      progWrap.style.display='block'; prog.style.width='0%';
-      let err=err1;
+    let full='', lastErr=null;
+    const ATTEMPTS=3;
+    for(let attempt=1; attempt<=ATTEMPTS; attempt++){
       try{
         full=await generateWith(MODEL_ID, messages, txtEl);
-      }catch(err2){
-        err=err2;
+        lastErr=null;
+        break;
+      }catch(err){
+        lastErr=err;
+        // eslint-disable-next-line no-console
+        console.error('[LauChat] intento '+attempt+'/'+ATTEMPTS+' falló:', err);
         ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
-      }
-      if(!full){
-        progWrap.style.display='none';
-        const msg=String(err&&(err.message||err));
-        const isNetwork=/fetch|network|ERR_FAILED|failed to download|xet|download/i.test(msg);
-        const isGpu=/device was lost|gpu|dxgi|webgpu|adapter/i.test(msg);
-        if(isNetwork){
-          full='No pude descargar el modelo de IA (falló la conexión, probablemente tu red o la conexión se cortó a mitad de la descarga). Revisá tu conexión y volvé a intentar — el modelo se sirve desde este mismo sitio, así que no debería depender de servidores externos. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
-        }else if(isGpu){
-          full='No pude generar una respuesta con IA en este navegador (problema de GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
-        }else{
-          full='No pude generar una respuesta con IA en este navegador. Recargá la página y probá de nuevo. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+        if(attempt<ATTEMPTS){
+          status.textContent='Falló, reintentando… ('+attempt+'/'+(ATTEMPTS-1)+')';
+          progWrap.style.display='block'; prog.style.width='0%';
+          if(attempt===ATTEMPTS-1){
+            // Antes del último intento: por si el caché del navegador quedó en un
+            // estado corrupto/parcial de un intento previo (esto explica el patrón
+            // "funcionó una vez y después no más" que reportaron algunos lectores),
+            // se lo limpia por completo y se arranca de cero.
+            try{
+              const webllm=await import('https://esm.run/@mlc-ai/web-llm');
+              await webllm.deleteModelAllInfoInCache(MODEL_ID, SELF_HOSTED_APPCONFIG);
+            }catch(_){/* best-effort */}
+          }
+          await new Promise(r=>setTimeout(r,700));
         }
-        txtEl.textContent=full;
       }
+    }
+    if(!full && lastErr){
+      const err=lastErr;
+      progWrap.style.display='none';
+      const msg=String(err&&(err.message||err));
+      const isNetwork=/fetch|network|ERR_FAILED|failed to download|xet|download/i.test(msg);
+      const isGpu=/device was lost|gpu|dxgi|webgpu|adapter/i.test(msg);
+      if(isNetwork){
+        full='No pude descargar el modelo de IA (falló la conexión, probablemente tu red o la conexión se cortó a mitad de la descarga). Revisá tu conexión y volvé a intentar — el modelo se sirve desde este mismo sitio, así que no debería depender de servidores externos. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+      }else if(isGpu){
+        full='No pude generar una respuesta con IA en este navegador (problema de GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+      }else{
+        full='No pude generar una respuesta con IA en este navegador. Recargá la página y probá de nuevo. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+      }
+      txtEl.textContent=full;
     }
     txtEl.classList.remove('typing');
 
@@ -6141,7 +6168,8 @@ addEventListener('keydown',e=>{
     await new Promise(r=>setTimeout(r,10));
     const items=search(q, CHUNKS, IDX);
     if(items.length===0){renderResults(items);return;}
-    if(!HAS_GPU){renderResults(items);return;}
+    const gpuOk=await ensureGpuUsable();
+    if(!gpuOk){renderResults(items);return;}
     askAI(q, items);
   });
 })();
