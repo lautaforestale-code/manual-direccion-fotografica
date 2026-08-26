@@ -354,7 +354,9 @@ tr:nth-child(even) td{background:var(--panel)}
   background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--cyan);
   border-radius:11px;padding:14px 15px;margin-bottom:14px;
 }
-.lc-answer .lc-role{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:7px}
+.lc-answer .lc-role{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.lc-badge{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:none;padding:2px 7px;border-radius:20px;border:1px solid var(--line2);color:var(--muted)}
+.lc-badge.ia{color:var(--cyan);border-color:var(--cyan)}
 .lc-answer .lc-txt{font-family:var(--font-body);font-size:13.5px;line-height:1.65;color:var(--ink);white-space:pre-wrap}
 .lc-answer .lc-txt.typing::after{content:'▍';color:var(--cyan);animation:lccursor .9s steps(1) infinite}
 @keyframes lccursor{50%{opacity:0}}
@@ -6080,17 +6082,19 @@ addEventListener('keydown',e=>{
     results.innerHTML='';
     const answerBox=document.createElement('div');
     answerBox.className='lc-answer';
-    answerBox.innerHTML='<div class="lc-role">◈ LauChat</div><div class="lc-txt typing">Pensando…</div>';
+    answerBox.innerHTML='<div class="lc-role">◈ LauChat <span class="lc-badge">pensando…</span></div><div class="lc-txt typing"></div>';
     results.appendChild(answerBox);
     const txtEl=answerBox.querySelector('.lc-txt');
+    const badgeEl=answerBox.querySelector('.lc-badge');
     status.textContent='Buscando la mejor respuesta…';
 
-    let full='', usedFinal=used;
+    let full='', usedFinal=used, source='ia';
     try{
       full=await callAI(q, ctx);
     }catch(err){
       // eslint-disable-next-line no-console
       console.warn('[LauChat] IA no disponible ahora, uso el respaldo local:', err);
+      source='busqueda';
       const extracted=extractBestPassage(q, items.slice(0,5), IDX);
       if(extracted){
         full=extracted.passage;
@@ -6101,6 +6105,8 @@ addEventListener('keydown',e=>{
     }
     txtEl.textContent=full;
     txtEl.classList.remove('typing');
+    badgeEl.textContent = source==='ia' ? '✦ generado por IA' : '⌕ búsqueda en el manual';
+    badgeEl.classList.toggle('ia', source==='ia');
 
     HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>450?full.slice(0,450)+'…':full});
     if(HISTORY.length>6)HISTORY=HISTORY.slice(-6);
