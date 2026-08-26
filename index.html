@@ -388,12 +388,25 @@ tr:nth-child(even) td{background:var(--panel)}
   font-family:var(--font-body);font-size:13px;line-height:1.5;color:var(--ink);white-space:pre-wrap;
 }
 .lc-answer{
-  background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--cyan);
-  border-radius:11px;padding:14px 15px;margin-bottom:14px;
+  display:flex;gap:11px;align-items:flex-start;
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:15px;padding:15px 16px;margin-bottom:16px;
 }
-.lc-answer .lc-role{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:7px}
-.lc-badge{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:none;padding:2px 7px;border-radius:20px;border:1px solid var(--line2);color:var(--muted)}
-.lc-badge.ia{color:var(--cyan);border-color:var(--cyan)}
+.lc-avatar{
+  flex:0 0 auto;width:26px;height:26px;border-radius:50%;margin-top:1px;
+  background:linear-gradient(135deg,var(--cyan),var(--amber));color:#0b0a08;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;
+}
+.lc-answer-body{flex:1;min-width:0}
+.lc-answer .lc-role{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.lc-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--font-mono);font-size:8.5px;letter-spacing:.03em;text-transform:none;
+  padding:3px 9px 3px 7px;border-radius:20px;background:var(--panel3);color:var(--muted);
+}
+.lc-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--muted)}
+.lc-badge.ia{color:var(--cyan);background:rgba(95,198,217,.12)}
+.lc-badge.ia::before{background:var(--cyan)}
 .lc-answer .lc-txt{font-family:var(--font-body);font-size:13.5px;line-height:1.65;color:var(--ink)}
 .lc-answer .lc-txt p{margin:0 0 10px}
 .lc-answer .lc-txt p:last-child{margin-bottom:0}
@@ -464,7 +477,6 @@ tr:nth-child(even) td{background:var(--panel)}
     <input id="lcInput" type="search" placeholder="Ej: cómo calculo un ratio de contraste…" autocomplete="off">
     <button type="submit">Preguntar</button>
   </form>
-  <div class="lc-foot" id="lcFoot">LauChat AI prioriza una respuesta generada por IA; si no está disponible, te muestra el pasaje más relevante del propio manual.</div>
 </aside>
 
 <!-- ================= MAIN ================= -->
@@ -6192,9 +6204,8 @@ addEventListener('keydown',e=>{
   }
 
   /* ---- Respuesta: IA real en servidor propio (gratis) + respaldo local sin IA ---- */
-  const subEl=document.getElementById('lcSub'), footEl=document.getElementById('lcFoot');
+  const subEl=document.getElementById('lcSub');
   subEl.textContent='Es como si te respondiera Lautaro mismo: preguntá lo que quieras sobre el manual, cine o dirección de fotografía.';
-  footEl.textContent='LauChat AI prioriza una respuesta generada por IA (servidor propio, gratuito, tus preguntas no se guardan). Si no está disponible en tu red en este momento, te muestra igual el pasaje más relevante del propio manual — nunca es un error, siempre contesta algo útil.';
 
   const AI_ENDPOINT='https://lauchat-proxy.lauchat-worker.workers.dev';
   let HISTORY=[];
@@ -6247,8 +6258,9 @@ addEventListener('keydown',e=>{
 
     const answerBox=document.createElement('div');
     answerBox.className='lc-answer';
-    answerBox.innerHTML='<div class="lc-role">◈ LauChat AI <span class="lc-badge">pensando…</span></div><div class="lc-txt typing"></div>';
+    answerBox.innerHTML='<div class="lc-avatar">◈</div><div class="lc-answer-body"><div class="lc-role">LauChat AI <span class="lc-badge">pensando…</span></div><div class="lc-txt typing"></div></div>';
     results.appendChild(answerBox);
+    const bodyEl=answerBox.querySelector('.lc-answer-body');
     const txtEl=answerBox.querySelector('.lc-txt');
     const badgeEl=answerBox.querySelector('.lc-badge');
     status.textContent='Pensando…';
@@ -6292,7 +6304,7 @@ addEventListener('keydown',e=>{
         chip.onclick=()=>goToChunk(c);
         srcWrap.appendChild(chip);
       });
-      answerBox.appendChild(srcWrap);
+      bodyEl.appendChild(srcWrap);
     }
     status.textContent='Listo';
     scrollToEnd();
