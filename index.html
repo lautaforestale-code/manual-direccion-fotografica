@@ -409,7 +409,7 @@ tr:nth-child(even) td{background:var(--panel)}
   <div class="lc-status" id="lcStatus"></div>
   <div class="lc-progwrap" id="lcProgWrap"><div class="lc-prog" id="lcProg"></div></div>
   <div class="lc-results" id="lcResults">
-    <div class="lc-empty">Preguntá algo del manual — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b> — y LauChat te responde con el modelo de IA que corre en tu propio navegador, citando capítulo y sección. La primera vez descarga el modelo (~1 GB); después queda en caché y arranca al instante.</div>
+    <div class="lc-empty">Preguntá algo del manual — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b> — y LauChat te responde con el modelo de IA que corre en tu propio navegador, citando capítulo y sección. La primera vez descarga el modelo de IA; después queda en caché en tu navegador y arranca al instante.</div>
   </div>
   <div class="lc-foot" id="lcFoot">Corre 100% en tu navegador (WebGPU), sin conexión a ningún servidor externo — ni el modelo ni tus preguntas salen de la máquina. Si el navegador no soporta IA embebida, LauChat cae automáticamente a modo búsqueda.</div>
 </aside>
@@ -5986,14 +5986,13 @@ addEventListener('keydown',e=>{
     subEl.textContent='Buscador del manual (tu navegador no soporta IA embebida): preguntá algo y te muestro los fragmentos más relevantes.';
     footEl.textContent='Búsqueda local (BM25), sin conexión a ningún servidor externo. Para respuestas generadas por IA hace falta un navegador con WebGPU (Chrome o Edge recientes).';
   }
-  const MODEL_ID='Qwen2.5-1.5B-Instruct-q4f16_1-MLC';
+  const MODEL_ID='Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
   const SYS_PROMPT='Sos LauChat, el asistente del Manual de Dirección Fotográfica Cinematográfica de Lautaro Forestale. '
     +'Respondé ÚNICAMENTE usando los fragmentos de contexto que se te dan a continuación, extraídos del propio manual. '
     +'Si la respuesta no está en esos fragmentos, decilo con claridad — no inventes ni completes con conocimiento general. '
     +'Citá siempre el capítulo y la sección de donde sacás la información. '
     +'Respondé en español rioplatense, con voseo, en el mismo tono técnico y directo del manual. '
     +'Sé breve y operativo: no más de cinco o seis oraciones, salvo que la pregunta pida explícitamente un desarrollo largo.';
-  const FALLBACK_MODEL_ID='Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
   let ENGINE=null, ENGINE_MODEL=null, ENGINE_PROMISE=null, HISTORY=[];
 
   function buildContext(items){
@@ -6060,18 +6059,31 @@ addEventListener('keydown',e=>{
     try{
       full=await generateWith(MODEL_ID, messages, txtEl);
     }catch(err1){
-      // Falla típica: "Device was lost" por memoria de GPU insuficiente para el modelo grande.
-      // Descartamos el engine y reintentamos una vez con un modelo más liviano antes de rendirnos.
+      // Primer intento fallido: puede ser un problema de red transitorio (falla al bajar
+      // algún fragmento del modelo) o un problema real de GPU. Descartamos el engine y
+      // probamos una vez más antes de rendirnos — muchas fallas de red son puntuales.
       ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
-      txtEl.textContent=''; txtEl.classList.add('typing');
+      status.textContent='Falló, reintentando…';
       progWrap.style.display='block'; prog.style.width='0%';
-      status.textContent='Tu navegador no tiene memoria de GPU suficiente para el modelo completo — probando con uno más liviano…';
+      let err=err1;
       try{
-        full=await generateWith(FALLBACK_MODEL_ID, messages, txtEl);
+        full=await generateWith(MODEL_ID, messages, txtEl);
       }catch(err2){
+        err=err2;
         ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
+      }
+      if(!full){
         progWrap.style.display='none';
-        full='No pude generar una respuesta con IA (el navegador perdió el acceso a la GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+        const msg=String(err&&(err.message||err));
+        const isNetwork=/fetch|network|ERR_FAILED|failed to download|xet|download/i.test(msg);
+        const isGpu=/device was lost|gpu|dxgi|webgpu|adapter/i.test(msg);
+        if(isNetwork){
+          full='No pude descargar el modelo de IA (falló la conexión con el servidor de modelos). Puede ser algo puntual de tu red — recargá la página y probá de nuevo. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+        }else if(isGpu){
+          full='No pude generar una respuesta con IA en este navegador (problema de GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+        }else{
+          full='No pude generar una respuesta con IA en este navegador. Recargá la página y probá de nuevo. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+        }
         txtEl.textContent=full;
       }
     }
