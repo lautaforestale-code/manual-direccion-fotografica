@@ -336,6 +336,8 @@ tr:nth-child(even) td{background:var(--panel)}
   padding:9px 18px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--muted);flex:0 0 auto;min-height:16px;
 }
+.lc-progwrap{display:none;height:2px;background:var(--line);flex:0 0 auto;overflow:hidden}
+.lc-prog{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--amber));transition:width .25s}
 .lc-results{flex:1 1 auto;overflow-y:auto;padding:4px 18px 24px}
 .lc-card{
   display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line2);
@@ -348,11 +350,27 @@ tr:nth-child(even) td{background:var(--panel)}
 .lc-card p{font-family:var(--font-body);font-size:12.5px;line-height:1.55;color:var(--ink-dim);margin:0}
 .lc-empty{font-family:var(--font-body);font-size:13.5px;color:var(--ink-dim);line-height:1.6;padding:30px 4px}
 .lc-empty b{color:var(--ink)}
+.lc-answer{
+  background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--cyan);
+  border-radius:11px;padding:14px 15px;margin-bottom:14px;
+}
+.lc-answer .lc-role{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:7px}
+.lc-answer .lc-txt{font-family:var(--font-body);font-size:13.5px;line-height:1.65;color:var(--ink);white-space:pre-wrap}
+.lc-answer .lc-txt.typing::after{content:'▍';color:var(--cyan);animation:lccursor .9s steps(1) infinite}
+@keyframes lccursor{50%{opacity:0}}
+.lc-sources{margin-top:12px;padding-top:11px;border-top:1px dashed var(--line2)}
+.lc-sources .lc-slabel{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:7px}
+.lc-chip{
+  display:inline-block;background:var(--panel3);border:1px solid var(--line2);color:var(--ink-dim);
+  font-family:var(--font-mono);font-size:10px;padding:5px 9px;border-radius:7px;margin:0 6px 6px 0;
+  cursor:pointer;transition:border-color .15s,color .15s;
+}
+.lc-chip:hover{border-color:var(--cyan);color:var(--cyan)}
 .lc-foot{
   padding:11px 18px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:9.5px;
   color:var(--muted);letter-spacing:.03em;flex:0 0 auto;line-height:1.5;
 }
-@media(prefers-reduced-motion:reduce){.lc-btn i{animation:none}}
+@media(prefers-reduced-motion:reduce){.lc-btn i{animation:none}.lc-answer .lc-txt.typing::after{animation:none}}
 
 @media(max-width:520px){
   body{font-size:16px}
@@ -382,17 +400,18 @@ tr:nth-child(even) td{background:var(--panel)}
 <aside class="lc-panel" id="lcPanel">
   <div class="lc-head">
     <div class="lc-brand"><b>◈ LAUCHAT</b><button class="lc-close" id="lcClose" aria-label="Cerrar">×</button></div>
-    <div class="lc-sub">Buscador del manual: preguntá algo y te muestro los fragmentos más relevantes, con link directo a la sección.</div>
+    <div class="lc-sub" id="lcSub">Asistente del manual: preguntá algo y te respondo con lo que dice el libro, citando capítulo y sección.</div>
   </div>
   <form class="lc-form" id="lcForm">
     <input id="lcInput" type="search" placeholder="Ej: cómo calculo un ratio de contraste…" autocomplete="off">
-    <button type="submit">Buscar</button>
+    <button type="submit">Preguntar</button>
   </form>
   <div class="lc-status" id="lcStatus"></div>
+  <div class="lc-progwrap" id="lcProgWrap"><div class="lc-prog" id="lcProg"></div></div>
   <div class="lc-results" id="lcResults">
-    <div class="lc-empty">Preguntá algo del manual — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b> — y LauChat busca en las 415 secciones del libro y te trae las más relevantes, citando capítulo y sección.</div>
+    <div class="lc-empty">Preguntá algo del manual — por ejemplo <b>"qué es la idea rectora"</b> o <b>"diferencia entre grano y ruido"</b> — y LauChat te responde con el modelo de IA que corre en tu propio navegador, citando capítulo y sección. La primera vez descarga el modelo (~1 GB); después queda en caché y arranca al instante.</div>
   </div>
-  <div class="lc-foot">Búsqueda local (BM25), sin conexión a ningún servidor externo. Funciona con el texto real del manual — no genera respuestas, te lleva directo a la fuente.</div>
+  <div class="lc-foot" id="lcFoot">Corre 100% en tu navegador (WebGPU), sin conexión a ningún servidor externo — ni el modelo ni tus preguntas salen de la máquina. Si el navegador no soporta IA embebida, LauChat cae automáticamente a modo búsqueda.</div>
 </aside>
 
 <!-- ================= MAIN ================= -->
@@ -5930,7 +5949,17 @@ addEventListener('keydown',e=>{
     return scores.slice(0,8).map(s=>chunks[s.i]);
   }
 
-  function renderResults(items, query){
+  function goToChunk(c){
+    go(c.chapterId);
+    closePanel();
+    setTimeout(()=>{
+      const heads=[...document.querySelectorAll('#'+c.chapterId+' h2, #'+c.chapterId+' h3')];
+      const target=heads.find(h=>h.textContent.trim()===c.titulo);
+      if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+    },60);
+  }
+
+  function renderResults(items){
     results.innerHTML='';
     if(items.length===0){
       results.innerHTML='<div class="lc-empty">No encontré nada sobre eso en el manual. LauChat busca únicamente dentro del contenido del libro — probá con otros términos o navegá el índice desde el menú lateral.</div>';
@@ -5944,20 +5973,130 @@ addEventListener('keydown',e=>{
       card.innerHTML='<div class="lc-path">'+c.capitulo+' · '+c.parte.replace(/^Parte\s*/,'')+'</div>'
         +'<h4>'+c.titulo+'</h4>'
         +'<p>'+c.texto.slice(0,190)+(c.texto.length>190?'…':'')+'</p>';
-      card.onclick=()=>{
-        go(c.chapterId);
-        closePanel();
-        setTimeout(()=>{
-          const heads=[...document.querySelectorAll('#'+c.chapterId+' h2, #'+c.chapterId+' h3')];
-          const target=heads.find(h=>h.textContent.trim()===c.titulo);
-          if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
-        },60);
-      };
+      card.onclick=()=>goToChunk(c);
       results.appendChild(card);
     });
   }
 
-  form.addEventListener('submit', e=>{
+  /* ---- Capa de IA: WebLLM + WebGPU, con degradación a búsqueda ---- */
+  const HAS_GPU=!!navigator.gpu;
+  const progWrap=document.getElementById('lcProgWrap'), prog=document.getElementById('lcProg');
+  const subEl=document.getElementById('lcSub'), footEl=document.getElementById('lcFoot');
+  if(!HAS_GPU){
+    subEl.textContent='Buscador del manual (tu navegador no soporta IA embebida): preguntá algo y te muestro los fragmentos más relevantes.';
+    footEl.textContent='Búsqueda local (BM25), sin conexión a ningún servidor externo. Para respuestas generadas por IA hace falta un navegador con WebGPU (Chrome o Edge recientes).';
+  }
+  const MODEL_ID='Qwen2.5-1.5B-Instruct-q4f16_1-MLC';
+  const SYS_PROMPT='Sos LauChat, el asistente del Manual de Dirección Fotográfica Cinematográfica de Lautaro Forestale. '
+    +'Respondé ÚNICAMENTE usando los fragmentos de contexto que se te dan a continuación, extraídos del propio manual. '
+    +'Si la respuesta no está en esos fragmentos, decilo con claridad — no inventes ni completes con conocimiento general. '
+    +'Citá siempre el capítulo y la sección de donde sacás la información. '
+    +'Respondé en español rioplatense, con voseo, en el mismo tono técnico y directo del manual. '
+    +'Sé breve y operativo: no más de cinco o seis oraciones, salvo que la pregunta pida explícitamente un desarrollo largo.';
+  const FALLBACK_MODEL_ID='Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
+  let ENGINE=null, ENGINE_MODEL=null, ENGINE_PROMISE=null, HISTORY=[];
+
+  function buildContext(items){
+    let ctx='', used=[];
+    for(const c of items){
+      const piece='['+c.capitulo+' > '+c.titulo+']\n'+c.texto+'\n\n';
+      if(ctx.length+piece.length>28000)break;
+      ctx+=piece; used.push(c);
+    }
+    return {ctx, used};
+  }
+
+  async function ensureEngine(onProgress, modelId){
+    if(ENGINE && ENGINE_MODEL===modelId)return ENGINE;
+    if(!ENGINE_PROMISE || ENGINE_MODEL!==modelId){
+      ENGINE_MODEL=modelId;
+      ENGINE_PROMISE=(async()=>{
+        const webllm=await import('https://esm.run/@mlc-ai/web-llm');
+        const engine=await webllm.CreateMLCEngine(modelId,{initProgressCallback:onProgress,logLevel:'ERROR'});
+        ENGINE=engine;
+        return engine;
+      })().catch(err=>{ENGINE_PROMISE=null;throw err;});
+    }
+    return ENGINE_PROMISE;
+  }
+
+  // Genera con un modelo dado; devuelve el texto final o lanza si falla.
+  async function generateWith(modelId, messages, txtEl){
+    const engine=await ensureEngine(report=>{
+      const pct=Math.round((report.progress||0)*100);
+      prog.style.width=pct+'%';
+      status.textContent=report.text||'Cargando modelo…';
+    }, modelId);
+    progWrap.style.display='none';
+    status.textContent='Generando respuesta…';
+    const stream=await engine.chat.completions.create({messages, stream:true, temperature:0.4, max_tokens:550});
+    let full='';
+    for await (const ch of stream){
+      full+=ch.choices?.[0]?.delta?.content||'';
+      txtEl.textContent=full;
+      results.scrollTop=results.scrollHeight;
+    }
+    return full;
+  }
+
+  async function askAI(q, items){
+    const {ctx, used}=buildContext(items);
+    progWrap.style.display='block';
+    status.textContent='Cargando el modelo de IA…';
+
+    results.innerHTML='';
+    const answerBox=document.createElement('div');
+    answerBox.className='lc-answer';
+    answerBox.innerHTML='<div class="lc-role">◈ LauChat</div><div class="lc-txt typing"></div>';
+    results.appendChild(answerBox);
+    const txtEl=answerBox.querySelector('.lc-txt');
+
+    const messages=[
+      {role:'system', content: SYS_PROMPT+'\n\nFRAGMENTOS DEL MANUAL:\n'+ctx},
+      ...HISTORY,
+      {role:'user', content:q}
+    ];
+    let full='';
+    try{
+      full=await generateWith(MODEL_ID, messages, txtEl);
+    }catch(err1){
+      // Falla típica: "Device was lost" por memoria de GPU insuficiente para el modelo grande.
+      // Descartamos el engine y reintentamos una vez con un modelo más liviano antes de rendirnos.
+      ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
+      txtEl.textContent=''; txtEl.classList.add('typing');
+      progWrap.style.display='block'; prog.style.width='0%';
+      status.textContent='Tu navegador no tiene memoria de GPU suficiente para el modelo completo — probando con uno más liviano…';
+      try{
+        full=await generateWith(FALLBACK_MODEL_ID, messages, txtEl);
+      }catch(err2){
+        ENGINE=null; ENGINE_PROMISE=null; ENGINE_MODEL=null;
+        progWrap.style.display='none';
+        full='No pude generar una respuesta con IA (el navegador perdió el acceso a la GPU). Recargá la página y probá de nuevo — normalmente se recupera con una recarga. Mientras tanto, te dejo los fragmentos del manual más relevantes abajo.';
+        txtEl.textContent=full;
+      }
+    }
+    txtEl.classList.remove('typing');
+
+    HISTORY.push({role:'user',content:q},{role:'assistant',content:full});
+    if(HISTORY.length>6)HISTORY=HISTORY.slice(-6);
+
+    if(used.length){
+      const srcWrap=document.createElement('div');
+      srcWrap.className='lc-sources';
+      srcWrap.innerHTML='<div class="lc-slabel">Fuentes</div>';
+      used.forEach(c=>{
+        const chip=document.createElement('span');
+        chip.className='lc-chip';
+        chip.textContent=c.capitulo+' · '+c.titulo;
+        chip.onclick=()=>goToChunk(c);
+        srcWrap.appendChild(chip);
+      });
+      answerBox.appendChild(srcWrap);
+    }
+    status.textContent='Listo';
+  }
+
+  form.addEventListener('submit', async e=>{
     e.preventDefault();
     const q=input.value.trim();
     if(!q)return;
@@ -5967,10 +6106,11 @@ addEventListener('keydown',e=>{
       IDX=buildIndex(CHUNKS);
     }
     status.textContent='Buscando en el manual…';
-    setTimeout(()=>{
-      const items=search(q, CHUNKS, IDX);
-      renderResults(items, q);
-    },10);
+    await new Promise(r=>setTimeout(r,10));
+    const items=search(q, CHUNKS, IDX);
+    if(items.length===0){renderResults(items);return;}
+    if(!HAS_GPU){renderResults(items);return;}
+    askAI(q, items);
   });
 })();
 
