@@ -6136,7 +6136,7 @@ addEventListener('keydown',e=>{
         full=extracted.passage;
         usedFinal=[extracted.chunk, ...used.filter(c=>c.id!==extracted.chunk.id)].slice(0,6);
       }else{
-        full=used.length ? used[0].texto.slice(0,300)+'…' : 'No encontré una respuesta directa — mirá los fragmentos relacionados abajo.';
+        full=used.length ? used[0].texto.slice(0,300)+'…' : 'No pude generar una respuesta ahora mismo (y el manual no tiene nada directamente relacionado con esto). Probá de nuevo en un momento.';
       }
     }
     txtEl.textContent=full;
@@ -6175,7 +6175,9 @@ addEventListener('keydown',e=>{
     status.textContent='Buscando en el manual…';
     await new Promise(r=>setTimeout(r,10));
     const items=search(q, CHUNKS, IDX);
-    if(items.length===0){renderResults(items);return;}
+    // Aunque el manual no tenga nada relevante (items vacío), igual le preguntamos a
+    // la IA: puede responder con conocimiento general del oficio audiovisual — solo
+    // que en ese caso no hay fuentes del manual para citar.
     answer(q, items);
   });
 })();
