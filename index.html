@@ -403,6 +403,7 @@ tr:nth-child(even) td{background:var(--panel)}
 .lc-answer .lc-txt li{margin-bottom:4px}
 .lc-answer .lc-txt hr{border:none;border-top:1px dashed var(--line2);margin:12px 0}
 .lc-answer .lc-txt code{background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:1px 5px;font-family:var(--font-mono);font-size:12px}
+.lc-answer .lc-txt pre{background:var(--panel3);border:1px solid var(--line2);border-radius:8px;padding:10px 12px;margin:0 0 10px;overflow-x:auto;font-family:var(--font-mono);font-size:11.5px;line-height:1.5;white-space:pre}
 .lc-answer .lc-txt strong{color:var(--ink);font-weight:800}
 .lc-answer .lc-txt.typing::after{content:'▍';color:var(--cyan);animation:lccursor .9s steps(1) infinite}
 @keyframes lccursor{50%{opacity:0}}
@@ -6085,6 +6086,26 @@ addEventListener('keydown',e=>{
   // cursiva, listas, código inline, separadores) — suficiente para lo que devuelve
   // Gemini, sin depender de ninguna librería externa. Escapa HTML primero por las dudas.
   function mdEscapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  // A pesar de que se le pide que no lo haga, a veces el modelo igual devuelve fórmulas
+  // en notación LaTeX ($...$, \frac{}{}, \text{}, etc.) — sin un renderizador de LaTeX
+  // eso se ve como símbolos sueltos sin sentido. Se limpia a texto plano equivalente
+  // (igual que la notación de fórmulas que ya usa el propio manual).
+  function mdCleanLatex(s){
+    s=s.replace(/\\text\{([^{}]*)\}/g,'$1');
+    for(let i=0;i<3;i++) s=s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'($1)/($2)');
+    s=s.replace(/(\d+)\s*\^\s*\\circ/g,'$1°');
+    s=s.replace(/\\circ/g,'°');
+    s=s.replace(/\\times/g,'×');
+    s=s.replace(/\\cdot/g,'·');
+    s=s.replace(/\\approx/g,'≈');
+    s=s.replace(/\\div/g,'÷');
+    s=s.replace(/[_^]\{([^{}]*)\}/g,'$1');
+    s=s.replace(/\$\$([\s\S]*?)\$\$/g,'$1');
+    s=s.replace(/\$([^$\n]+)\$/g,'$1');
+    s=s.replace(/\\\\/g,' ');
+    s=s.replace(/\\([a-zA-Z]+)/g,'$1');
+    return s;
+  }
   function mdInline(s){
     s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
     s=s.replace(/`([^`\n]+)`/g,'<code>$1</code>');
@@ -6092,18 +6113,25 @@ addEventListener('keydown',e=>{
     return s;
   }
   function mdToHtml(md){
-    const lines=mdEscapeHtml(md.trim()).split('\n');
-    const out=[]; let listBuf=null, paraBuf=null;
+    const lines=mdEscapeHtml(mdCleanLatex(md.trim())).split('\n');
+    const out=[]; let listBuf=null, paraBuf=null, fenceBuf=null;
     function flushList(){ if(listBuf){ out.push('<ul>'+listBuf.join('')+'</ul>'); listBuf=null; } }
     function flushPara(){ if(paraBuf){ out.push('<p>'+mdInline(paraBuf.join(' '))+'</p>'); paraBuf=null; } }
     lines.forEach(raw=>{
+      if(fenceBuf!==null){
+        if(/^\s*```/.test(raw)){ out.push('<pre>'+fenceBuf.join('\n')+'</pre>'); fenceBuf=null; }
+        else fenceBuf.push(raw);
+        return;
+      }
       const line=raw.trim(); let m;
+      if(/^```/.test(line)){ flushList(); flushPara(); fenceBuf=[]; return; }
       if(line===''){ flushList(); flushPara(); return; }
-      if((m=line.match(/^#{1,3}\s+(.*)$/))){ flushList(); flushPara(); out.push('<h4>'+mdInline(m[1])+'</h4>'); return; }
+      if((m=line.match(/^#{1,6}\s+(.*)$/))){ flushList(); flushPara(); out.push('<h4>'+mdInline(m[1])+'</h4>'); return; }
       if(/^-{3,}$/.test(line)){ flushList(); flushPara(); out.push('<hr>'); return; }
       if((m=line.match(/^[-*]\s+(.*)$/))){ flushPara(); (listBuf=listBuf||[]).push('<li>'+mdInline(m[1])+'</li>'); return; }
       flushList(); (paraBuf=paraBuf||[]).push(line);
     });
+    if(fenceBuf!==null) out.push('<pre>'+fenceBuf.join('\n')+'</pre>');
     flushList(); flushPara();
     return out.join('')||mdEscapeHtml(md);
   }
