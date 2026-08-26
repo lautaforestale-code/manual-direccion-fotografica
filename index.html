@@ -5932,6 +5932,44 @@ addEventListener('keydown',e=>{
     toks.forEach(t=>{ if(SYNONYMS[t]) SYNONYMS[t].forEach(s=>set.add(normalize(s))); });
     return [...set];
   }
+  function levenshtein(a,b){
+    if(Math.abs(a.length-b.length)>3) return 99;
+    let prev=[]; for(let j=0;j<=b.length;j++)prev[j]=j;
+    for(let i=1;i<=a.length;i++){
+      const cur=[i];
+      for(let j=1;j<=b.length;j++){
+        cur[j]=a[i-1]===b[j-1] ? prev[j-1] : 1+Math.min(prev[j-1],prev[j],cur[j-1]);
+      }
+      prev=cur;
+    }
+    return prev[b.length];
+  }
+  // Tolerancia a errores de tipeo: si una palabra de la pregunta no existe tal cual
+  // en el vocabulario del manual, busca la más parecida (distancia de edición chica)
+  // y la suma a la búsqueda — así "obturasion" o "diafgrama" igual encuentran algo.
+  function fuzzyExpand(qToks, idx){
+    const out=new Set(qToks);
+    qToks.forEach(t=>{
+      if(idx.df.has(t) || t.length<4) return;
+      const maxDist = t.length<=5?1:2;
+      let best=null, bestDist=maxDist+1;
+      for(const v of idx.df.keys()){
+        if(Math.abs(v.length-t.length)>maxDist) continue;
+        const d=levenshtein(t,v);
+        if(d<bestDist){ bestDist=d; best=v; if(d===0)break; }
+      }
+      if(best) out.add(best);
+    });
+    return [...out];
+  }
+  // Punto único donde se arma el set de tokens de una consulta (tal cual + sinónimos +
+  // correcciones por tipeo), para que la búsqueda normal y el respaldo extractivo usen
+  // exactamente la misma lógica.
+  function getQueryTokens(query, idx){
+    const raw=[...new Set(tokenize(query))];
+    const corrected=fuzzyExpand(raw, idx);
+    return {raw, expanded:expandTokens(corrected)};
+  }
   function buildIndex(chunks){
     const df=new Map();
     const docs=chunks.map(c=>{
@@ -5952,9 +5990,8 @@ addEventListener('keydown',e=>{
     return Math.log(1+(idx.N-dfT+0.5)/(dfT+0.5));
   }
   function search(query, chunks, idx){
-    const qToksRaw=[...new Set(tokenize(query))];
+    const {raw:qToksRaw, expanded:qToks}=getQueryTokens(query, idx);
     if(qToksRaw.length===0)return[];
-    const qToks=expandTokens(qToksRaw);
     const k1=1.5, b=0.75;
     const need=qToksRaw.length<=2?qToksRaw.length:Math.max(2, qToksRaw.length-2);
     const scores=idx.docs.map((d,i)=>{
@@ -5987,8 +6024,7 @@ addEventListener('keydown',e=>{
   // fragmentos más relevantes ya encontrados por BM25. Es el respaldo cuando la
   // IA generativa no está disponible — y funciona sin IA, sin descargas, siempre.
   function extractBestPassage(query, topChunks, idx){
-    const qToksRaw=[...new Set(tokenize(query))];
-    const qToks=expandTokens(qToksRaw);
+    const {expanded:qToks}=getQueryTokens(query, idx);
     let best=null;
     topChunks.forEach(c=>{
       const sentences=splitSentences(c.texto);
