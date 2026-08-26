@@ -320,6 +320,8 @@ tr:nth-child(even) td{background:var(--panel)}
 .lc-brand b{font-family:var(--font-mono);font-size:12px;letter-spacing:.2em;color:var(--cyan);font-weight:700}
 .lc-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:2px 4px}
 .lc-close:hover{color:var(--ink)}
+.lc-newchat{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:2px 4px}
+.lc-newchat:hover{color:var(--cyan)}
 .lc-sub{font-family:var(--font-body);font-size:12.5px;color:var(--ink-dim);margin-top:6px;line-height:1.5}
 .lc-form{padding:14px 18px;border-bottom:1px solid var(--line);flex:0 0 auto;display:flex;gap:8px}
 .lc-form input{
@@ -350,6 +352,11 @@ tr:nth-child(even) td{background:var(--panel)}
 .lc-card p{font-family:var(--font-body);font-size:12.5px;line-height:1.55;color:var(--ink-dim);margin:0}
 .lc-empty{font-family:var(--font-body);font-size:13.5px;color:var(--ink-dim);line-height:1.6;padding:30px 4px}
 .lc-empty b{color:var(--ink)}
+.lc-user-msg{
+  background:var(--panel3);border:1px solid var(--line2);border-radius:11px 11px 3px 11px;
+  padding:9px 13px;margin:0 0 10px auto;max-width:85%;width:fit-content;
+  font-family:var(--font-body);font-size:13px;line-height:1.5;color:var(--ink);white-space:pre-wrap;
+}
 .lc-answer{
   background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--cyan);
   border-radius:11px;padding:14px 15px;margin-bottom:14px;
@@ -401,7 +408,7 @@ tr:nth-child(even) td{background:var(--panel)}
 <div class="lc-overlay" id="lcOverlay"></div>
 <aside class="lc-panel" id="lcPanel">
   <div class="lc-head">
-    <div class="lc-brand"><b>◈ LAUCHAT</b><button class="lc-close" id="lcClose" aria-label="Cerrar">×</button></div>
+    <div class="lc-brand"><b>◈ LAUCHAT</b><span style="display:flex;align-items:center;gap:10px"><button class="lc-newchat" id="lcNewChat" aria-label="Nueva conversación" title="Nueva conversación">↺</button><button class="lc-close" id="lcClose" aria-label="Cerrar">×</button></span></div>
     <div class="lc-sub" id="lcSub">Asistente del manual: preguntá algo y te respondo con lo que dice el libro, citando capítulo y sección.</div>
   </div>
   <form class="lc-form" id="lcForm">
@@ -5890,6 +5897,7 @@ addEventListener('keydown',e=>{
 (function(){
   const btn=document.getElementById('lcBtn'), panel=document.getElementById('lcPanel'),
         lcOv=document.getElementById('lcOverlay'), closeB=document.getElementById('lcClose'),
+        newChatB=document.getElementById('lcNewChat'),
         form=document.getElementById('lcForm'), input=document.getElementById('lcInput'),
         status=document.getElementById('lcStatus'), results=document.getElementById('lcResults');
 
@@ -5897,6 +5905,12 @@ addEventListener('keydown',e=>{
   function closePanel(){panel.classList.remove('open');lcOv.classList.remove('on');}
   btn.onclick=openPanel; closeB.onclick=closePanel; lcOv.onclick=closePanel;
   addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+  newChatB.onclick=()=>{
+    HISTORY=[];
+    results.innerHTML='<div class="lc-empty">Preguntá algo sobre el manual o sobre cine y dirección de fotografía en general.</div>';
+    status.textContent='';
+    input.focus();
+  };
 
   let CHUNKS=null, IDX=null;
   const STOP=new Set(['que','como','una','uno','unos','unas','para','los','las','del','por','con','sin',
@@ -6113,9 +6127,18 @@ addEventListener('keydown',e=>{
     }
   }
 
+  function scrollToEnd(){ results.scrollTop=results.scrollHeight; }
+
   async function answer(q, items){
     const {ctx, used}=buildContext(items);
-    results.innerHTML='';
+    const emptyMsg=results.querySelector('.lc-empty');
+    if(emptyMsg) emptyMsg.remove();
+
+    const userBox=document.createElement('div');
+    userBox.className='lc-user-msg';
+    userBox.textContent=q;
+    results.appendChild(userBox);
+
     const answerBox=document.createElement('div');
     answerBox.className='lc-answer';
     answerBox.innerHTML='<div class="lc-role">◈ LauChat <span class="lc-badge">pensando…</span></div><div class="lc-txt typing"></div>';
@@ -6123,6 +6146,7 @@ addEventListener('keydown',e=>{
     const txtEl=answerBox.querySelector('.lc-txt');
     const badgeEl=answerBox.querySelector('.lc-badge');
     status.textContent='Buscando la mejor respuesta…';
+    scrollToEnd();
 
     let full='', usedFinal=used, source='ia';
     try{
@@ -6161,12 +6185,14 @@ addEventListener('keydown',e=>{
       answerBox.appendChild(srcWrap);
     }
     status.textContent='Listo';
+    scrollToEnd();
   }
 
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const q=input.value.trim();
     if(!q)return;
+    input.value='';
     if(!CHUNKS){
       status.textContent='Cargando índice…';
       CHUNKS=JSON.parse(document.getElementById('lauchat-data').textContent);
