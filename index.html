@@ -7,6 +7,15 @@
 <meta name="author" content="Lautaro Forestale">
 <meta name="description" content="Manual de Dirección Fotográfica Cinematográfica, por Lautaro Forestale — 52 capítulos, 147 fotografías reales y 87 diagramas técnicos.">
 <title>Manual de Dirección Fotográfica Cinematográfica — Lautaro Forestale</title>
+<link rel="canonical" href="https://lautaforestale-code.github.io/manual-direccion-fotografica/">
+<meta property="og:type" content="book">
+<meta property="og:title" content="Manual de Dirección Fotográfica Cinematográfica — Lautaro Forestale">
+<meta property="og:description" content="52 capítulos, 147 fotografías reales y 87 diagramas técnicos sobre cámara, óptica, exposición, luz y color, iluminación y el oficio de dirección de fotografía cinematográfica.">
+<meta property="og:image" content="https://lautaforestale-code.github.io/manual-direccion-fotografica/imagenes/capitulo-fuentes-arri1000.jpg">
+<meta property="og:url" content="https://lautaforestale-code.github.io/manual-direccion-fotografica/">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Favicon inline en SVG (glifo ◈ del propio sitio) para no depender de un archivo binario aparte. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230b0a08'/%3E%3Ctext x='50' y='68' font-size='62' text-anchor='middle' fill='%23f5a623'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -241,6 +250,22 @@ blockquote .who{display:block;margin-top:10px;font-style:normal;font-family:var(
   background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--violet);
   padding:14px 16px;border-radius:8px;margin:18px 0;font-size:15px;
 }
+/* --- Calculadoras interactivas embebidas --- */
+.calc-box{background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--amber);border-radius:8px;padding:16px 18px;margin:20px 0}
+.calc-title{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+.calc-row{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:4px}
+.calc-row label{display:flex;flex-direction:column;gap:5px;font-family:var(--font-ui);font-size:12px;color:var(--ink-dim);flex:1 1 130px}
+.calc-row input,.calc-row select{
+  background:var(--panel3);border:1px solid var(--line2);border-radius:6px;color:var(--ink);
+  font-family:var(--font-mono);font-size:14px;padding:7px 9px;width:100%;
+}
+.calc-row input:focus,.calc-row select:focus{outline:none;border-color:var(--amber)}
+.calc-result{
+  margin-top:14px;padding-top:12px;border-top:1px dashed var(--line2);
+  font-family:var(--font-mono);font-size:14px;line-height:1.7;color:var(--ink);
+}
+.calc-result b{color:var(--amber)}
+.calc-note{font-family:var(--font-ui);font-size:11.5px;color:var(--muted);margin-top:8px}
 table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
 th{background:var(--panel2);font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
@@ -336,6 +361,10 @@ tr:nth-child(even) td{background:var(--panel)}
 @media(max-width:520px){
   .lc-btn .lc-lbl small{display:none}
   .lc-btn{padding:11px 14px}
+  /* Al scrollear en mobile el pill se achica a un círculo con solo el ícono, para
+     no taparle texto al lector mientras lee — se agranda de nuevo cerca del tope. */
+  .lc-btn.compact{padding:13px;border-radius:50%;gap:0}
+  .lc-btn.compact .lc-lbl{display:none}
 }
 .lc-panel{
   position:fixed;inset:0 0 0 auto;width:min(420px,92vw);z-index:63;
@@ -428,6 +457,17 @@ tr:nth-child(even) td{background:var(--panel)}
   cursor:pointer;transition:border-color .15s,color .15s;
 }
 .lc-chip:hover{border-color:var(--cyan);color:var(--cyan)}
+.lc-fb-wrap{margin-top:10px;display:flex;align-items:center;gap:8px}
+.lc-fb-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-right:2px}
+.lc-fb{
+  background:var(--panel3);border:1px solid var(--line2);color:var(--ink-dim);
+  font-size:12px;line-height:1;padding:6px 9px;border-radius:7px;cursor:pointer;
+  transition:border-color .15s,transform .1s;
+}
+.lc-fb:hover{border-color:var(--cyan);transform:translateY(-1px)}
+.lc-fb:disabled{cursor:default;opacity:.55;transform:none}
+.lc-fb.picked{border-color:var(--amber);background:rgba(245,166,35,.12)}
+.lc-fb-thanks{font-family:var(--font-mono);font-size:9.5px;color:var(--muted)}
 .lc-foot{
   padding:11px 18px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:9.5px;
   color:var(--muted);letter-spacing:.03em;flex:0 0 auto;line-height:1.5;
@@ -1970,7 +2010,21 @@ tr:nth-child(even) td{background:var(--panel)}
 <p><strong>Ejemplo resuelto 3 — 85 mm, T2.8, Super 35 (c = 0,025 mm):</strong></p>
 <p>H = 85² / (2,8 × 0,025) = 7.225 / 0,07 = 103.214 mm ≈ <strong>103 m</strong></p>
 <p>Aquí la hiperfocal deja de ser una herramienta útil: enfocar a cien metros para tener nítido desde cincuenta no sirve de nada en una escena de interior. La hiperfocal es un recurso de focales cortas y diafragmas cerrados —documental, plano general, cámara en mano sin foquista—, y pierde todo sentido con teleobjetivos a plena abertura.</p>
-<h2>14.5 Calcular los límites de la zona nítida</h2>
+<h2>14.5 Calcular los límites de la zona nítida</h2><div class="calc-box" id="calcHiperfocal">
+<div class="calc-title">Calculadora de hiperfocal</div>
+<div class="calc-row">
+<label>Focal (mm)<input type="number" id="chFocal" value="50" min="1" step="1"></label>
+<label>Diafragma (f/T)<input type="number" id="chN" value="8" min="0.5" step="0.1"></label>
+<label>Formato<select id="chFormato">
+<option value="0.030">Full Frame (c=0,030mm)</option>
+<option value="0.025" selected>Super 35 (c=0,025mm)</option>
+<option value="0.018">MFT (c=0,018mm)</option>
+<option value="0.011">1&quot; (c=0,011mm)</option>
+</select></label>
+<label>Distancia de enfoque, opcional (m)<input type="number" id="chS" value="" min="0" step="0.1" placeholder="s = H"></label>
+</div>
+<div class="calc-result" id="chResult">—</div>
+</div>
 <p>Una vez conocida la hiperfocal, los límites cercano y lejano para cualquier distancia de enfoque <strong>s</strong> se obtienen con:</p>
 <p><strong>Límite cercano: Dₙ = (H · s) / (H + s − f)</strong></p>
 <p><strong>Límite lejano: D_f = (H · s) / (H − s + f)</strong></p>
@@ -2323,7 +2377,23 @@ tr:nth-child(even) td{background:var(--panel)}
 <p>Lo decisivo, y lo que convierte al triángulo en un asunto artístico y no aritmético, es que <strong>cada variable arrastra un efecto secundario sobre la imagen</strong> que no tiene nada que ver con el brillo:</p>
 <table><thead><tr><th>Variable</th><th>Controla</th><th>Efecto colateral, que es la verdadera decisión</th></tr></thead><tbody><tr><td>Apertura</td><td>Cantidad de luz</td><td>Profundidad de campo</td></tr><tr><td>Velocidad / ángulo de obturador</td><td>Tiempo de luz</td><td>Motion blur, sensación de fluidez o de estroboscopia</td></tr><tr><td>ISO / EI</td><td>Ganancia de la señal</td><td>Ruido o grano, y rango dinámico disponible</td></tr></tbody></table>
 <p>Si las tres variables solo afectaran al brillo, cualquier combinación sería intercambiable y el trabajo sería trivial. Como cada una modifica además una cualidad expresiva de la imagen, la combinación deja de ser indiferente. f/2 a ISO 800 y f/8 a ISO 12800 pueden dar la misma densidad, y sin embargo son dos películas distintas.</p>
-<h2>19.4 El orden profesional de decisión</h2>
+<h2>19.4 El orden profesional de decisión</h2><div class="calc-box" id="calcExposicion">
+<div class="calc-title">Calculadora de equivalencia de exposición</div>
+<p class="calc-note" style="margin:0 0 10px">Comparás una combinación de partida contra una nueva y te dice si te da la misma exposición o cuántos pasos de diferencia hay.</p>
+<div class="calc-row">
+<label>Diafragma inicial (f/N)<input type="number" id="ceF1" value="2.8" min="0.5" step="0.1"></label>
+<label>Diafragma nuevo (f/N)<input type="number" id="ceF2" value="8" min="0.5" step="0.1"></label>
+</div>
+<div class="calc-row">
+<label>Velocidad inicial (1/x s)<input type="number" id="ceT1" value="50" min="1" step="1"></label>
+<label>Velocidad nueva (1/x s)<input type="number" id="ceT2" value="50" min="1" step="1"></label>
+</div>
+<div class="calc-row">
+<label>ISO inicial<input type="number" id="ceI1" value="800" min="25" step="25"></label>
+<label>ISO nuevo<input type="number" id="ceI2" value="800" min="25" step="25"></label>
+</div>
+<div class="calc-result" id="ceResult">—</div>
+</div>
 <p>De ahí surge una diferencia de método que separa al aficionado del profesional, y que conviene enunciar sin rodeos porque reordena toda la lógica del trabajo.</p>
 <p>El aficionado suele partir de la luz disponible y ajustar la cámara hasta que la imagen "quede bien expuesta". El profesional invierte el orden:</p>
 <ol><li><strong>Primero decide la imagen.</strong> ¿Qué profundidad de campo necesita esta secuencia? ¿Un fondo disuelto o legible? ¿El obturador estándar de 180° o un ángulo cerrado que endurezca el movimiento? Estas preguntas se responden leyendo el guion y hablando con el director, no mirando un fotómetro.</li><li><strong>Esas decisiones fijan la apertura y el obturador.</strong> Quedan clavados. Son constantes de la película, o al menos de la secuencia.</li><li><strong>Se elige un EI de trabajo</strong> coherente con la textura buscada y con las condiciones de rodaje.</li><li><strong>Recién entonces se ajusta la luz</strong> —potencia de las fuentes, distancia, difusión, densidades neutras— para que esa combinación previamente decidida dé la densidad correcta.</li></ol>
@@ -4720,7 +4790,7 @@ tr:nth-child(even) td{background:var(--panel)}
 </section>
 
     <!-- PARTE VIII -->
-    <section class="chapter" id="c39"><div class="kicker">Parte VIII — Industria</div><h1 class="ch">44. Cámaras y sensores actuales</h1><h2>44.1 Cómo leer una cámara moderna</h2>
+    <section class="chapter" id="c39"><div class="kicker">Parte VIII — Industria</div><h1 class="ch">44. Cámaras y sensores actuales</h1><h2>44.1 Cómo leer una cámara moderna</h2><div class="note"><p><strong>Nota de vigencia.</strong> Este es el capítulo del libro que más rápido envejece: describe el mercado de cámaras tal como estaba al cerrar esta edición (fecha de versión en la portada), y un lanzamiento nuevo puede dejar una comparación de specs vieja en cuestión de semanas. Para modelos posteriores a esta edición, la forma más rápida de estar al día es preguntarle directamente a <a href="#" id="c44AskLauchat">LauChat AI</a> — no reemplaza este capítulo, lo complementa con lo que salió después.</p></div>
 <figure class="visual-block" id="fig-redepic">
 <img src="imagenes/capitulo-camaras-red-epic.jpg" alt="Cámara RED EPIC en set con monitor de cámara mostrando la imagen e información de exposición" loading="lazy"/>
 <figcaption>Una RED EPIC en configuración liviana de steadycam, con su propio monitor de referencia montado arriba: otro actor del mercado de cámaras digitales, con su propia arquitectura de sensor y códec.<span class="credit">Foto: -Roge- / Wikimedia Commons · CC BY-SA 2.0</span></figcaption>
@@ -5904,6 +5974,10 @@ function go(id){
   updatePager();
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.remove('on');
+  // Deja el capítulo actual en el hash de la URL: permite compartir o guardar el
+  // link directo a un capítulo puntual, sin cambiar el comportamiento del botón
+  // "atrás" del navegador (replaceState, no pushState).
+  try{ history.replaceState(null,'','#'+id); }catch(_){}
 }
 function updatePager(){
   const idx=FLAT.findIndex(x=>x.id===cur);
@@ -5927,10 +6001,14 @@ function tc(){
 addEventListener('scroll',tc,{passive:true});tc();
 
 /* ---- Tema ---- */
-const tb=document.getElementById('themeBtn');let theme='tung';
+const tb=document.getElementById('themeBtn');
+let theme='tung';
+try{ const saved=localStorage.getItem('df_theme'); if(saved==='luzdia'||saved==='tung')theme=saved; }catch(_){}
+if(theme==='luzdia'){ document.documentElement.setAttribute('data-theme','luzdia'); tb.textContent='🌙 3200K'; }
 tb.onclick=()=>{theme=theme==='tung'?'luzdia':'tung';
   document.documentElement.setAttribute('data-theme',theme);
-  tb.textContent=theme==='luzdia'?'🌙 3200K':'☀ 5600K';};
+  tb.textContent=theme==='luzdia'?'🌙 3200K':'☀ 5600K';
+  try{ localStorage.setItem('df_theme',theme); }catch(_){}};
 
 /* ---- Menú móvil ---- */
 const sb=document.getElementById('sidebar'),ov=document.getElementById('overlay');
@@ -5969,13 +6047,54 @@ addEventListener('keydown',e=>{
   btn.onclick=openPanel; closeB.onclick=closePanel; lcOv.onclick=closePanel;
   const promoBtn=document.getElementById('lauchatPromoBtn');
   if(promoBtn) promoBtn.onclick=openPanel;
+  // Link "preguntale a LauChat AI" dentro de la nota de vigencia del capítulo de
+  // cámaras (44) — abre el panel directo, sin navegar a ningún lado.
+  document.addEventListener('click', e=>{
+    const askB=e.target.closest('#c44AskLauchat');
+    if(askB){ e.preventDefault(); openPanel(); }
+  });
   addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+
+  // En mobile el pill flotante puede taparle el final del párrafo al lector
+  // mientras scrollea — lo achicamos a un círculo con solo el ícono apenas
+  // empieza a scrollear, y vuelve a mostrarse completo cerca del tope.
+  if(matchMedia('(max-width:520px)').matches){
+    addEventListener('scroll',()=>{btn.classList.toggle('compact',scrollY>200);},{passive:true});
+  }
+
   newChatB.onclick=()=>{
     HISTORY=[];
     results.innerHTML='<div class="lc-empty">Preguntá algo sobre el manual o sobre cine y dirección de fotografía en general.</div>';
     status.textContent='';
     input.focus();
+    try{ localStorage.removeItem('lauchat_history'); localStorage.removeItem('lauchat_html'); }catch(_){}
   };
+
+  // Clicks dentro del hilo de conversación (chips de fuente, botones de feedback):
+  // delegado en un solo listener para que también funcione en mensajes restaurados
+  // desde localStorage, donde los .onclick asignados en JS no sobreviven al innerHTML.
+  results.addEventListener('click', e=>{
+    const chip=e.target.closest('.lc-chip[data-chapter-id]');
+    if(chip){ goToChunk({chapterId:chip.dataset.chapterId, titulo:chip.dataset.titulo}); return; }
+    const fb=e.target.closest('.lc-fb[data-rating]');
+    if(fb){ sendFeedback(fb); return; }
+  });
+
+  function sendFeedback(btn){
+    if(btn.disabled) return;
+    const wrap=btn.parentElement;
+    wrap.querySelectorAll('.lc-fb').forEach(b=>b.disabled=true);
+    btn.classList.add('picked');
+    const thanks=document.createElement('span');
+    thanks.className='lc-fb-thanks';
+    thanks.textContent='¡Gracias por el feedback!';
+    wrap.appendChild(thanks);
+    fetch(AI_ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'feedback',rating:btn.dataset.rating,question:btn.dataset.q,answer:btn.dataset.a}),
+    }).catch(()=>{ /* best-effort, no molestamos al usuario si falla */ });
+  }
 
   let CHUNKS=null, IDX=null;
   const STOP=new Set(['que','como','una','uno','unos','unas','para','los','las','del','por','con','sin',
@@ -6210,6 +6329,17 @@ addEventListener('keydown',e=>{
   const AI_ENDPOINT='https://lauchat-proxy.lauchat-worker.workers.dev';
   let HISTORY=[];
 
+  // Restaura la charla anterior si el lector cierra o recarga la página. Los
+  // .onclick de JS no sobreviven a este innerHTML restaurado — por eso los chips
+  // y los botones de feedback usan el listener delegado de más arriba en vez de
+  // asignarse handlers directos.
+  try{
+    const savedHtml=localStorage.getItem('lauchat_html');
+    const savedHist=localStorage.getItem('lauchat_history');
+    if(savedHtml){ results.innerHTML=savedHtml; }
+    if(savedHist){ HISTORY=JSON.parse(savedHist); }
+  }catch(_){ /* si algo del guardado quedó corrupto, arrancamos de cero sin romper nada */ }
+
   function buildContext(items, capChars){
     capChars = capChars || 6000;
     let ctx='', used=[];
@@ -6301,13 +6431,28 @@ addEventListener('keydown',e=>{
         const chip=document.createElement('span');
         chip.className='lc-chip';
         chip.textContent=c.capitulo+' · '+c.titulo;
-        chip.onclick=()=>goToChunk(c);
+        chip.dataset.chapterId=c.chapterId;
+        chip.dataset.titulo=c.titulo;
         srcWrap.appendChild(chip);
       });
       bodyEl.appendChild(srcWrap);
     }
+
+    const fbWrap=document.createElement('div');
+    fbWrap.className='lc-fb-wrap';
+    fbWrap.innerHTML='<span class="lc-fb-label">¿Te sirvió?</span>'
+      +'<button class="lc-fb" data-rating="up" aria-label="Respuesta útil" title="Respuesta útil">👍</button>'
+      +'<button class="lc-fb" data-rating="down" aria-label="Respuesta no útil" title="Respuesta no útil">👎</button>';
+    fbWrap.querySelectorAll('.lc-fb').forEach(b=>{ b.dataset.q=q; b.dataset.a=full; });
+    bodyEl.appendChild(fbWrap);
+
     status.textContent='Listo';
     scrollToEnd();
+
+    try{
+      localStorage.setItem('lauchat_history', JSON.stringify(HISTORY));
+      localStorage.setItem('lauchat_html', results.innerHTML);
+    }catch(_){ /* localStorage lleno o bloqueado: no rompemos el chat por esto */ }
   }
 
   form.addEventListener('submit', async e=>{
@@ -6330,7 +6475,139 @@ addEventListener('keydown',e=>{
   });
 })();
 
-go('portada');
+/* ================= Glosario cruzado ================= */
+// Enlaza automáticamente la primera mención de cada término del glosario dentro
+// de cada capítulo, apuntando de vuelta a su definición. Trabaja sobre el DOM ya
+// parseado (no sobre el HTML fuente) para no arriesgar romper el markup de los
+// 52 capítulos: solo toca nodos de texto sueltos, nunca títulos, links, code ni
+// atributos. Se corre después del primer render para no demorar la carga.
+setTimeout(function(){
+  const gloss=document.getElementById('ambiguos');
+  if(!gloss) return;
+  const terms=[];
+  gloss.querySelectorAll('.note > p > strong').forEach(strong=>{
+    const raw=strong.textContent.trim();
+    const p=strong.closest('p');
+    const slug='gt-'+raw.toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    if(!p.id) p.id=slug;
+    // Términos de 4 letras o menos (Coma, ND, RAW, LOG, IRE, LUT…) quedan afuera:
+    // son demasiado cortos y ambiguos como para linkearlos a ciegas en prosa
+    // corrida sin arriesgar un enlace incorrecto (ej. "Coma" con la puntuación).
+    if(raw.length>4) terms.push({term:raw, slug:p.id});
+  });
+  if(!terms.length) return;
+  terms.sort((a,b)=>b.term.length-a.term.length);
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const pattern=new RegExp('\\b('+terms.map(t=>esc(t.term)).join('|')+')\\b','i');
+
+  document.querySelectorAll('.chapter').forEach(ch=>{
+    if(ch.id==='ambiguos') return;
+    const done=new Set();
+    const walker=document.createTreeWalker(ch, NodeFilter.SHOW_TEXT, {
+      acceptNode(node){
+        const p=node.parentElement;
+        if(!p || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        if(p.closest('a,h1,h2,h3,h4,code,pre,svg,script,style,.credit,.kicker')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes=[]; let n; while(n=walker.nextNode()) nodes.push(n);
+    nodes.forEach(node=>{
+      const text=node.nodeValue, m=pattern.exec(text);
+      if(!m) return;
+      const found=terms.find(t=>t.term.toLowerCase()===m[1].toLowerCase());
+      if(!found || done.has(found.slug)) return;
+      done.add(found.slug);
+      const idx=m.index, before=text.slice(0,idx), after=text.slice(idx+m[1].length);
+      const a=document.createElement('a');
+      a.className='gloss-link'; a.href='#ambiguos'; a.dataset.term=found.slug; a.textContent=m[1];
+      const frag=document.createDocumentFragment();
+      if(before) frag.appendChild(document.createTextNode(before));
+      frag.appendChild(a);
+      if(after) frag.appendChild(document.createTextNode(after));
+      node.parentNode.replaceChild(frag, node);
+    });
+  });
+
+  document.addEventListener('click', e=>{
+    const a=e.target.closest('.gloss-link');
+    if(!a) return;
+    e.preventDefault();
+    go('ambiguos');
+    setTimeout(()=>{
+      const target=document.getElementById(a.dataset.term);
+      if(target) target.scrollIntoView({behavior:'smooth',block:'center'});
+    }, 60);
+  });
+}, 400);
+
+/* ================= Calculadoras embebidas (14: hiperfocal, 19: exposición) ================= */
+(function(){
+  const f=document.getElementById('chFocal'), N=document.getElementById('chN'),
+        fmt=document.getElementById('chFormato'), sIn=document.getElementById('chS'),
+        out=document.getElementById('chResult');
+  if(!f) return;
+  function calc(){
+    const focal=parseFloat(f.value), n=parseFloat(N.value), c=parseFloat(fmt.value);
+    if(!focal||!n||!c){ out.textContent='Completá focal y diafragma.'; return; }
+    const H=(focal*focal)/(n*c)+focal, Hm=H/1000;
+    let txt='Hiperfocal: <b>'+Hm.toFixed(2)+' m</b> — enfocando ahí, todo desde <b>'+(Hm/2).toFixed(2)+' m</b> hasta infinito queda nítido.';
+    const s=parseFloat(sIn.value);
+    if(s>0){
+      const sMm=s*1000;
+      const Dn=(H*sMm)/(H+sMm-focal);
+      const denomLejos=H-sMm+focal;
+      const Df=denomLejos<=0?Infinity:(H*sMm)/denomLejos;
+      txt+='<br>Enfocando a '+s+' m: zona nítida de <b>'+(Dn/1000).toFixed(2)+' m</b> a '+(Df===Infinity?'<b>infinito</b>':'<b>'+(Df/1000).toFixed(2)+' m</b>')+'.';
+    }
+    out.innerHTML=txt;
+  }
+  [f,N,fmt,sIn].forEach(el=>el.addEventListener('input',calc));
+  calc();
+})();
+
+(function(){
+  const F1=document.getElementById('ceF1'),F2=document.getElementById('ceF2'),
+        T1=document.getElementById('ceT1'),T2=document.getElementById('ceT2'),
+        I1=document.getElementById('ceI1'),I2=document.getElementById('ceI2'),
+        out=document.getElementById('ceResult');
+  if(!F1) return;
+  function calc(){
+    const f1=parseFloat(F1.value),f2=parseFloat(F2.value),
+          t1=parseFloat(T1.value),t2=parseFloat(T2.value),
+          i1=parseFloat(I1.value),i2=parseFloat(I2.value);
+    if(!f1||!f2||!t1||!t2||!i1||!i2){ out.textContent='Completá los seis valores.'; return; }
+    const dA=2*Math.log2(f2/f1), dT=Math.log2(t2/t1), dI=-Math.log2(i2/i1);
+    const total=Math.round((dA+dT+dI)*100)/100;
+    let veredicto;
+    if(Math.abs(total)<0.05) veredicto='misma exposición — son equivalentes.';
+    else if(total>0) veredicto='la nueva combinación queda <b>'+Math.abs(total).toFixed(2)+' pasos más oscura</b>.';
+    else veredicto='la nueva combinación queda <b>'+Math.abs(total).toFixed(2)+' pasos más clara</b>.';
+    out.innerHTML='Diafragma: '+(dA>=0?'+':'')+dA.toFixed(2)+' · Velocidad: '+(dT>=0?'+':'')+dT.toFixed(2)+' · ISO: '+(dI>=0?'+':'')+dI.toFixed(2)+' pasos<br>Resultado: '+veredicto;
+  }
+  [F1,F2,T1,T2,I1,I2].forEach(el=>el.addEventListener('input',calc));
+  calc();
+})();
+
+// Si alguien entra con un link directo a un capítulo (#numero-de-capitulo), lo
+// abrimos ahí en vez de mandarlo siempre a la portada.
+(function(){
+  const h=location.hash.replace('#','');
+  go(h && document.getElementById(h) ? h : 'portada');
+})();
+addEventListener('hashchange',()=>{
+  const h=location.hash.replace('#','');
+  if(h && document.getElementById(h) && h!==cur) go(h);
+});
 </script>
+<!-- Cloudflare Web Analytics: gratis, sin cookies, no mide datos personales.
+     OJO Lautaro: falta tu token real. Se consigue gratis en el dashboard de
+     Cloudflare > Analytics & Logs > Web Analytics > Add a site, y se pega acá
+     reemplazando XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX. Mientras tanto este script
+     no manda nada a ningún lado (el beacon con token inválido simplemente no
+     hace nada), así que no rompe el sitio ni recolecta datos por accidente. -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"}'></script>
 </body>
 </html>

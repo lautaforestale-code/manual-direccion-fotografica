@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lautaforestale-code.github.io/manual-direccion-fotografica/sitemap.xml

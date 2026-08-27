@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  El sitio es una sola página (todos los capítulos viven en un único index.html,
+  navegados por JS) — no hay URLs separadas por capítulo a nivel de servidor,
+  así que solo hay una página real para indexar. Los links con #capitulo sirven
+  para compartir un capítulo puntual, pero Google no los trata como páginas
+  distintas, así que no se listan acá como si lo fueran.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://lautaforestale-code.github.io/manual-direccion-fotografica/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
