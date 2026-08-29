@@ -196,15 +196,31 @@ img{max-width:100%}
 .btn-play:active{transform:translateY(0) scale(.98)}
 .btn-ghost{
   display:inline-flex;align-items:center;gap:8px;
-  background:rgba(255,255,255,.04);color:#efe7d4;font-family:var(--font-ui);font-weight:600;font-size:14px;
-  padding:13px 18px;border-radius:11px;border:1px solid rgba(255,255,255,.16);cursor:pointer;
+  background:var(--panel);color:var(--ink);font-family:var(--font-ui);font-weight:600;font-size:14px;
+  padding:13px 18px;border-radius:11px;border:1px solid var(--line2);cursor:pointer;
   transition:background .15s,border-color .15s;
 }
-.btn-ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.35)}
-.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:1px;background:#2e2a23;border:1px solid #2e2a23;border-radius:10px;overflow:hidden;margin-top:26px;position:relative}
-.hero-stats .s{background:#161412;padding:15px 10px;text-align:center}
+.btn-ghost:hover{background:var(--panel2);border-color:var(--amber-dim)}
+.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:26px;position:relative}
+.hero-stats .s{background:var(--panel2);padding:15px 10px;text-align:center}
 .hero-stats .s b{display:block;font-family:var(--font-ui);font-weight:800;font-size:24px;color:var(--amber);font-variant-numeric:tabular-nums}
-.hero-stats .s small{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#7a7160;margin-top:4px}
+.hero-stats .s small{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+
+/* ---- Portada simple del manual (sin la claqueta, que ahora vive en
+   landing.html) ---- */
+.simple-hero{padding:6px 0 4px}
+.back-to-hub{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--amber);text-decoration:none;margin-bottom:16px;
+}
+.back-to-hub:hover{text-decoration:underline}
+.simple-hero h1{
+  font-family:var(--font-ui);font-weight:900;font-size:clamp(30px,5.6vw,42px);
+  line-height:1.1;letter-spacing:-.015em;text-wrap:balance;color:var(--ink);
+}
+.simple-hero .sub{color:var(--ink-dim);margin-top:14px;font-size:16px;max-width:62ch;line-height:1.65}
+.simple-hero .byline{font-family:var(--font-mono);font-size:13px;color:var(--muted);letter-spacing:.03em;margin-top:14px}
+.simple-hero .byline b{color:var(--ink);font-weight:700;border-bottom:1px solid var(--amber-dim)}
 .lauchat-promo{
   margin-top:26px;background:rgba(95,198,217,.08);border:1px solid rgba(95,198,217,.4);
   border-radius:13px;padding:22px 22px 20px;position:relative;
@@ -777,33 +793,25 @@ mark.df-note:hover{background:color-mix(in srgb, var(--amber) 36%, transparent)}
 
   <div class="content" id="content">
 
-    <!-- PORTADA -->
+    <!-- PORTADA (simple: la presentación grande vive en landing.html, que
+         es la puerta de entrada al englobe. Acá el manual ya autónomo solo
+         necesita orientar a quien ya decidió leerlo.) -->
     <section class="chapter" id="portada">
-      <div class="slate">
-        <div class="stripes"></div>
-        <div class="body">
-          <h1>MANUAL DE DIRECCIÓN FOTOGRÁFICA CINEMATOGRÁFICA</h1>
-          <p class="sub">Con una mirada personal y en clave explicativa, este material reúne desde los fundamentos técnicos del oficio hasta aspectos concretos y explicaciones claras de la práctica en set: cámara, óptica, exposición, luz y color, iluminación. Detalla el método de trabajo, puesto en contexto con la realidad de la industria contemporánea. Se trata, en definitiva, de un recurso basado en el hacer real, escrito de punta a punta para leerse de corrido o consultarse capítulo por capítulo.</p>
-          <p class="byline">Escrito y dirigido por <b>Lautaro Forestale</b></p>
-          <div class="hero-cta">
-            <button class="btn-play" data-go="c1">▶ Empezar a leer</button>
-            <button class="btn-ghost" data-go="indice">☰ Índice completo</button>
-            <button class="btn-ghost" data-go="como-leer">Cómo está organizado</button>
-          </div>
-          <div class="hero-stats">
-            <div class="s"><b>52</b><small>Capítulos</small></div>
-            <div class="s"><b>9</b><small>Partes</small></div>
-            <div class="s"><b>147</b><small>Fotografías</small></div>
-            <div class="s"><b>87</b><small>Diagramas</small></div>
-          </div>
-          <div class="lauchat-promo">
-            <div class="lp-badge">✦ Novedad</div>
-            <div class="lp-body">
-              <div class="lp-title">◈ LauChat AI</div>
-              <p>Es como si te respondiera yo mismo: preguntale lo que quieras — de este manual, de cine, del oficio en general — y te contesta con conocimiento real, citando el capítulo y la sección cuando corresponde.</p>
-            </div>
-            <button class="lp-btn" type="button" id="lauchatPromoBtn">Hablar con LauChat AI →</button>
-          </div>
+      <div class="simple-hero">
+        <a class="back-to-hub" href="landing.html">◈ Manual de Cine</a>
+        <h1>Dirección de Fotografía</h1>
+        <p class="sub">Cámara, óptica, exposición, luz y color, iluminación y método de trabajo — con una mirada personal y en clave explicativa, escrito de punta a punta desde la experiencia real de set.</p>
+        <p class="byline">Escrito y dirigido por <b>Lautaro Forestale</b></p>
+        <div class="hero-cta">
+          <button class="btn-play" data-go="c1">▶ Empezar a leer</button>
+          <button class="btn-ghost" data-go="indice">☰ Índice completo</button>
+          <button class="btn-ghost" data-go="como-leer">Cómo está organizado</button>
+        </div>
+        <div class="hero-stats">
+          <div class="s"><b>52</b><small>Capítulos</small></div>
+          <div class="s"><b>9</b><small>Partes</small></div>
+          <div class="s"><b>147</b><small>Fotografías</small></div>
+          <div class="s"><b>87</b><small>Diagramas</small></div>
         </div>
       </div>
       <div class="zonestrip" data-zones></div>

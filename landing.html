@@ -73,20 +73,32 @@ a{color:inherit}
 /* ---- Layout general ---- */
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
 section{padding:56px 0}
-section.hero{padding-top:15vh;padding-bottom:48px;text-align:center}
+section.hero{padding-top:9vh;padding-bottom:44px}
 h2{font-family:var(--font-ui);font-weight:800;font-size:clamp(21px,3.6vw,26px);letter-spacing:-.01em;margin-bottom:8px}
 .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;display:block}
 .lede{color:var(--ink-dim);font-size:15px;max-width:52ch;margin-bottom:30px}
 
-/* ---- Hero: una sola acción clara ---- */
-.hero h1{
-  font-family:var(--font-ui);font-weight:900;font-size:clamp(32px,7vw,50px);
-  line-height:1.06;letter-spacing:-.02em;text-wrap:balance;
+/* ---- Hero: la claqueta — es la portada del sitio, así que se lleva
+   ella el tratamiento cinematográfico grande (antes vivía en la portada
+   interna del manual de Fotografía, que ahora es simple). ---- */
+.slate{background:#101010;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+.slate .stripes{
+  height:30px;background:repeating-linear-gradient(45deg,#efe7d4 0 20px,#101010 20px 40px);
+  transform-origin:2% 50%;animation:clap .6s cubic-bezier(.2,.8,.3,1) both;
 }
-.hero .sub{
-  font-family:var(--font-body);color:var(--ink-dim);font-size:16.5px;line-height:1.65;
-  max-width:52ch;margin:18px auto 0;
+@keyframes clap{0%{transform:rotate(-8deg) translateY(-7px)}58%{transform:rotate(1.6deg)}100%{transform:rotate(0)}}
+@media(prefers-reduced-motion:reduce){.slate .stripes{animation:none}}
+.slate .body{padding:34px 30px 32px;color:#efe7d4;position:relative;overflow:hidden}
+.slate .body::before{
+  content:"";position:absolute;top:-40%;right:-15%;width:60%;height:180%;
+  background:radial-gradient(closest-side,rgba(245,166,35,.16),transparent 70%);
+  pointer-events:none;
 }
+.slate h1{
+  font-family:var(--font-ui);font-weight:900;font-size:clamp(32px,6.4vw,48px);
+  line-height:1.07;letter-spacing:-.02em;text-wrap:balance;position:relative;color:#fff;
+}
+.slate .sub{color:#c9bfa4;margin-top:16px;font-size:15.5px;max-width:56ch;line-height:1.6;position:relative}
 .btn-play{
   display:inline-flex;align-items:center;gap:10px;text-decoration:none;
   background:var(--amber);color:#0b0a08;font-family:var(--font-ui);font-weight:800;font-size:15.5px;
@@ -94,18 +106,23 @@ h2{font-family:var(--font-ui);font-weight:800;font-size:clamp(21px,3.6vw,26px);l
   box-shadow:0 10px 26px rgba(245,166,35,.3);transition:transform .15s,box-shadow .15s;
 }
 .btn-play:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(245,166,35,.4)}
-.hero-cta{margin-top:32px}
+.hero-cta{margin-top:28px;position:relative}
 .hero-login{
-  display:block;margin-top:16px;font-family:var(--font-ui);font-size:13px;color:var(--muted);
-  text-decoration:none;
+  display:block;margin-top:14px;font-family:var(--font-ui);font-size:13px;color:#a89d84;
+  text-decoration:none;position:relative;
 }
 .hero-login b{color:var(--amber);font-weight:700}
 .hero-login:hover b{text-decoration:underline}
-.hero .byline{font-family:var(--font-mono);font-size:12.5px;color:var(--muted);letter-spacing:.03em;margin-top:26px}
+.slate-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#2e2a23;border:1px solid #2e2a23;border-radius:10px;overflow:hidden;margin-top:28px;position:relative}
+.slate-stats .s{background:#161412;padding:14px 8px;text-align:center}
+.slate-stats .s b{display:block;font-family:var(--font-ui);font-weight:800;font-size:21px;color:var(--amber);font-variant-numeric:tabular-nums}
+.slate-stats .s small{display:block;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#7a7160;margin-top:4px}
+
+.hero .byline{font-family:var(--font-mono);font-size:12.5px;color:var(--muted);letter-spacing:.03em;margin-top:22px}
 .hero .byline b{color:var(--ink);font-weight:700;border-bottom:1px solid var(--amber-dim)}
 
 /* ---- Roadmap: chips chicos, no compiten con el CTA principal ---- */
-.roadmap{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:38px}
+.roadmap{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
 .chip{
   display:inline-flex;align-items:center;gap:7px;
   font-family:var(--font-mono);font-size:11.5px;letter-spacing:.03em;
@@ -148,9 +165,12 @@ footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-s
 @media(max-width:560px){
   body{font-size:15.5px}
   section{padding:34px 0}
-  section.hero{padding-top:8vh}
-  .hero h1{font-size:clamp(28px,10vw,40px)}
-  .hero .sub{font-size:15px}
+  section.hero{padding-top:5vh}
+  .slate .body{padding:26px 20px 26px}
+  .slate h1{font-size:clamp(26px,10vw,36px)}
+  .slate .sub{font-size:14.5px}
+  .slate-stats .s{padding:11px 6px}
+  .slate-stats .s b{font-size:18px}
   .btn-play{padding:13px 20px;font-size:14.5px}
   .benefits{gap:16px}
   .roadmap{gap:8px}
@@ -169,11 +189,21 @@ footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-s
 
 <section class="hero">
   <div class="wrap">
-    <h1>MANUAL DE CINE</h1>
-    <p class="sub">Manuales de oficio escritos de punta a punta por Lautaro Forestale, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
-    <div class="hero-cta">
-      <a class="btn-play" href="index.html">▶ Entrar al Manual de Fotografía</a>
-      <a class="hero-login" id="heroLogin" href="index.html?login=1&amp;tab=up">¿Primera vez? <b>Creá una cuenta gratis</b> para guardar tu progreso</a>
+    <div class="slate">
+      <div class="stripes"></div>
+      <div class="body">
+        <h1>MANUAL DE CINE</h1>
+        <p class="sub">Manuales de oficio escritos de punta a punta por Lautaro Forestale, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
+        <div class="hero-cta">
+          <a class="btn-play" href="index.html">▶ Entrar al Manual de Fotografía</a>
+          <a class="hero-login" id="heroLogin" href="index.html?login=1&amp;tab=up">¿Primera vez? <b>Creá una cuenta gratis</b> para guardar tu progreso</a>
+        </div>
+        <div class="slate-stats">
+          <div class="s"><b>52</b><small>Capítulos</small></div>
+          <div class="s"><b>147</b><small>Fotografías</small></div>
+          <div class="s"><b>87</b><small>Diagramas</small></div>
+        </div>
+      </div>
     </div>
     <div class="roadmap">
       <a class="chip on" href="index.html"><span class="dot"></span>Fotografía — disponible</a>
