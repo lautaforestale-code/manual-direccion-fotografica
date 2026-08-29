@@ -624,6 +624,7 @@ tr:nth-child(even) td{background:var(--panel)}
 <!-- ================= MAIN ================= -->
 <div class="main">
   <div class="topbar">
+    <a class="tbtn" href="landing.html" title="Volver al inicio" aria-label="Volver al inicio" style="font-size:15px;padding:7px 10px">◈</a>
     <button class="hamb" id="hamb">☰</button>
     <span class="timecode" id="timecode">00:00:00:00</span>
     <div class="prog-wrap"><div class="prog" id="prog"></div></div>
@@ -6576,6 +6577,47 @@ addEventListener('keydown',e=>{
     try{ document.dispatchEvent(new CustomEvent('df:chat-message',{detail:{question:q, answer:full}})); }catch(_){}
   }
 
+  // El módulo de cuenta (auth) dispara esto al loguearse, con el historial
+  // guardado en Supabase para esta cuenta — reemplaza lo que hubiera en
+  // pantalla (charla anónima local, si la había) por el historial real de
+  // la cuenta, para que sí viaje entre dispositivos.
+  document.addEventListener('df:chat-restore', e=>{
+    const msgs=(e.detail && e.detail.messages) || [];
+    if(!msgs.length) return; // cuenta nueva sin charlas todavía: dejamos lo que ya había en pantalla
+    HISTORY=[];
+    results.innerHTML='';
+    msgs.forEach(m=>{
+      const userBox=document.createElement('div');
+      userBox.className='lc-user-msg';
+      userBox.textContent=m.question;
+      results.appendChild(userBox);
+
+      const answerBox=document.createElement('div');
+      answerBox.className='lc-answer';
+      answerBox.innerHTML='<div class="lc-avatar">◈</div><div class="lc-answer-body"><div class="lc-role">LauChat AI</div><div class="lc-txt"></div></div>';
+      answerBox.querySelector('.lc-txt').innerHTML=mdToHtml(m.answer);
+      results.appendChild(answerBox);
+
+      HISTORY.push({role:'user',content:m.question},{role:'assistant',content:m.answer.length>900?m.answer.slice(0,900)+'…':m.answer});
+    });
+    if(HISTORY.length>6) HISTORY=HISTORY.slice(-6);
+    try{
+      localStorage.setItem('lauchat_history', JSON.stringify(HISTORY));
+      localStorage.setItem('lauchat_html', results.innerHTML);
+    }catch(_){}
+    scrollToEnd();
+  });
+
+  // El módulo de cuenta dispara esto al desloguearse: limpiamos la pantalla
+  // (y el localStorage) para que no quede visible el historial de esa
+  // cuenta si otra persona usa el mismo navegador después.
+  document.addEventListener('df:chat-clear', ()=>{
+    HISTORY=[];
+    results.innerHTML='<div class="lc-empty">Preguntá algo sobre el manual o sobre cine y dirección de fotografía en general.</div>';
+    status.textContent='';
+    try{ localStorage.removeItem('lauchat_history'); localStorage.removeItem('lauchat_html'); }catch(_){}
+  });
+
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const q=input.value.trim();
@@ -6750,7 +6792,7 @@ addEventListener('hashchange',()=>{
         passIn=document.getElementById('acctPassInput'), submitB=document.getElementById('acctSubmit'),
         msg=document.getElementById('acctMsg'), googleB=document.getElementById('acctGoogle');
 
-  let mode='in', session=null;
+  let mode='in', session=null, historySynced=false;
 
   function openModal(){ overlay.classList.add('on'); modal.classList.add('on'); }
   function closeModal(){ overlay.classList.remove('on'); modal.classList.remove('on'); }
@@ -6790,6 +6832,19 @@ addEventListener('hashchange',()=>{
 
   if(!configured){ renderState(); return; }
 
+  // Si venís desde landing.html con ?login=1 (botones "Iniciar sesión" /
+  // "Crear cuenta gratis"), abrimos el modal directo — ?tab=up lo abre ya
+  // en modo "Crear cuenta". Limpiamos el parámetro de la URL después para
+  // que no quede pegado si recargás la página más tarde.
+  try{
+    const qs=new URLSearchParams(location.search);
+    if(qs.get('login')==='1'){
+      if(qs.get('tab')==='up') setMode('up');
+      openModal();
+      history.replaceState(null,'',location.pathname+location.hash);
+    }
+  }catch(_){}
+
   acctForm.addEventListener('submit', async e=>{
     e.preventDefault();
     submitB.disabled=true;
@@ -6824,16 +6879,26 @@ addEventListener('hashchange',()=>{
     closeModal();
   };
 
-  sb.auth.onAuthStateChange((_event, s)=>{
+  // Centraliza lo que pasa cada vez que cambia el estado de sesión (login,
+  // logout, refresh de token, carga inicial de la página). Además de
+  // actualizar la UI de la cuenta, trae el historial de LauChat AI desde
+  // Supabase al loguearse, y lo borra de la pantalla al desloguearse (para
+  // que no quede visible el historial de una cuenta en el navegador de otra
+  // persona que use el mismo dispositivo después).
+  function onSessionChange(s){
+    const hadSession=!!session;
     session=s;
     renderState();
-    if(session) refreshStat();
-  });
-  sb.auth.getSession().then(({data})=>{
-    session=data.session;
-    renderState();
-    if(session) refreshStat();
-  });
+    if(session){
+      refreshStat();
+      if(!historySynced){ historySynced=true; syncChatHistory(); }
+    }else if(hadSession){
+      historySynced=false;
+      try{ document.dispatchEvent(new CustomEvent('df:chat-clear')); }catch(_){}
+    }
+  }
+  sb.auth.onAuthStateChange((_event, s)=>{ onSessionChange(s); });
+  sb.auth.getSession().then(({data})=>{ onSessionChange(data.session); });
 
   async function refreshStat(){
     if(!session) return;
@@ -6842,6 +6907,23 @@ addEventListener('hashchange',()=>{
       const total=(typeof FLAT!=='undefined' && FLAT.length) || 52;
       statLbl.textContent='Leíste '+(count||0)+' de '+total+' secciones del manual. Tu historial con LauChat AI se guarda en tu cuenta y te sigue en cualquier dispositivo.';
     }catch(_){ /* si falla, se queda el mensaje genérico del HTML */ }
+  }
+
+  // Trae las charlas guardadas de esta cuenta en Supabase y le avisa al
+  // panel de LauChat AI para que las muestre (evento df:chat-restore, ver
+  // el listener correspondiente más abajo, junto al resto del código de
+  // LauChat). Así el historial sí viaja entre dispositivos, que era el
+  // sentido de guardarlo por cuenta en primer lugar.
+  async function syncChatHistory(){
+    try{
+      const {data, error}=await sb.from('chat_messages')
+        .select('question,answer')
+        .eq('manual_area', MANUAL_AREA)
+        .order('created_at', {ascending:true})
+        .limit(100);
+      if(error) return;
+      document.dispatchEvent(new CustomEvent('df:chat-restore',{detail:{messages:data||[]}}));
+    }catch(_){ /* si falla, el panel se queda como estaba (historial local, si había) */ }
   }
 
   // ---- Sincronización con el resto del sitio, vía eventos custom ----
