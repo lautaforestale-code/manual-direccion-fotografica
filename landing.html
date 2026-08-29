@@ -195,7 +195,7 @@ footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-s
         <h1>MANUAL DE CINE</h1>
         <p class="sub">Manuales de oficio escritos de punta a punta por Lautaro Forestale, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
         <div class="hero-cta">
-          <a class="btn-play" href="index.html">▶ Entrar al Manual de Fotografía</a>
+          <a class="btn-play" id="mainCta" href="index.html">▶ Entrar al Manual de Fotografía</a>
           <a class="hero-login" id="heroLogin" href="index.html?login=1&amp;tab=up">¿Primera vez? <b>Creá una cuenta gratis</b> para guardar tu progreso</a>
         </div>
         <div class="slate-stats">
@@ -221,31 +221,45 @@ footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-s
     <p class="lede">Todo el manual y LauChat AI funcionan igual sin loguearte. Con cuenta, además:</p>
     <div class="benefits">
       <div class="benefit">
-        <div class="ico">◷</div>
+        <div class="ico">▶</div>
         <div>
-          <h4>Progreso de lectura</h4>
-          <p>Guardamos qué capítulos ya leíste y te mostramos, en %, cuánto llevás recorrido.</p>
+          <h4>Seguís donde quedaste</h4>
+          <p>Guardamos tu progreso y te llevamos directo al último capítulo la próxima vez que entrás.</p>
         </div>
       </div>
       <div class="benefit">
-        <div class="ico">◈</div>
+        <div class="ico">🔥</div>
         <div>
-          <h4>Charlas guardadas</h4>
-          <p>Tu historial con LauChat AI te sigue en cualquier dispositivo.</p>
+          <h4>Racha de lectura <span class="new-tag">Nuevo</span></h4>
+          <p>Sumá días seguidos leyendo. La racha se corta si te salteás un día entero.</p>
+        </div>
+      </div>
+      <div class="benefit">
+        <div class="ico">🎬</div>
+        <div>
+          <h4>Tus créditos <span class="new-tag">Nuevo</span></h4>
+          <p>Desbloqueás roles del equipo de rodaje a medida que avanzás — de CONTINUISTA a DIRECTOR DE FOTOGRAFÍA.</p>
         </div>
       </div>
       <div class="benefit">
         <div class="ico">✎</div>
         <div>
           <h4>Notas propias <span class="new-tag">Nuevo</span></h4>
-          <p>Marcá un fragmento de texto y dejá tu nota ahí anclada.</p>
+          <p>Marcá un fragmento de texto y dejá tu nota ahí anclada. Exportables cuando quieras.</p>
         </div>
       </div>
       <div class="benefit">
-        <div class="ico">✦</div>
+        <div class="ico">📜</div>
         <div>
-          <h4>LauChat AI</h4>
-          <p>Preguntale al manual lo que quieras — responde citando capítulo y sección.</p>
+          <h4>Certificado al completarlo <span class="new-tag">Nuevo</span></h4>
+          <p>Terminaste los 52 capítulos: descargá tu certificado, estilo claqueta de producción.</p>
+        </div>
+      </div>
+      <div class="benefit">
+        <div class="ico">◈</div>
+        <div>
+          <h4>Charlas con LauChat guardadas</h4>
+          <p>Tu historial con LauChat AI te sigue en cualquier dispositivo.</p>
         </div>
       </div>
     </div>
@@ -304,6 +318,20 @@ footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-s
     var heroLogin=document.getElementById('heroLogin');
     if(loginBtn) loginBtn.textContent='👤 '+((session.user.email||'Mi cuenta').split('@')[0]);
     if(heroLogin) heroLogin.style.display='none';
+
+    // "Continuar donde quedaste": si ya leyó algo, el CTA principal deja
+    // de ser el genérico "Entrar al manual" y pasa directo al último
+    // capítulo — index.html ya sabe saltar ahí solo con el hash.
+    sb.from('reading_progress').select('chapter_id,read_at').eq('manual_area','fotografia')
+      .order('read_at',{ascending:false}).limit(1).then(function(r){
+        var row = r && r.data && r.data[0];
+        if(!row) return;
+        var cta=document.getElementById('mainCta');
+        if(cta){
+          cta.textContent='▶ Continuar leyendo donde quedaste';
+          cta.href='index.html#'+row.chapter_id;
+        }
+      }).catch(function(){});
   }).catch(function(){});
 })();
 </script>

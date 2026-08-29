@@ -57,6 +57,8 @@ create policy "insert own reading_progress" on public.reading_progress
   for insert with check (auth.uid() = user_id);
 create policy "update own reading_progress" on public.reading_progress
   for update using (auth.uid() = user_id);
+create policy "delete own reading_progress" on public.reading_progress
+  for delete using (auth.uid() = user_id);
 
 create policy "select own chat_messages" on public.chat_messages
   for select using (auth.uid() = user_id);
