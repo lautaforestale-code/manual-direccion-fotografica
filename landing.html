@@ -164,7 +164,7 @@ footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-s
   <span class="brand"><span class="glyph">◈</span> Manual de Cine</span>
   <div class="spacer"></div>
   <button class="tbtn" id="themeBtn">☀ 5600K</button>
-  <a class="tbtn" href="index.html?login=1">Iniciar sesión</a>
+  <a class="tbtn" id="loginBtn" href="index.html?login=1">Iniciar sesión</a>
 </div>
 
 <section class="hero">
@@ -173,7 +173,7 @@ footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-s
     <p class="sub">Manuales de oficio escritos de punta a punta por Lautaro Forestale, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
     <div class="hero-cta">
       <a class="btn-play" href="index.html">▶ Entrar al Manual de Fotografía</a>
-      <a class="hero-login" href="index.html?login=1&amp;tab=up">¿Primera vez? <b>Creá una cuenta gratis</b> para guardar tu progreso</a>
+      <a class="hero-login" id="heroLogin" href="index.html?login=1&amp;tab=up">¿Primera vez? <b>Creá una cuenta gratis</b> para guardar tu progreso</a>
     </div>
     <div class="roadmap">
       <a class="chip on" href="index.html"><span class="dot"></span>Fotografía — disponible</a>
@@ -251,6 +251,30 @@ footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-s
     apply(theme);
     try{ localStorage.setItem('df_theme', theme); }catch(_){}
   };
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+/* La landing es estática y no tiene el modal de cuenta — pero si ya hay
+   sesión iniciada (misma cuenta de Supabase que index.html, comparten
+   dominio así que comparten localStorage), no tiene sentido seguir
+   mostrando "Iniciar sesión" ni el CTA de "¿Primera vez?". El botón
+   sigue apuntando a index.html?login=1: ahí, si ya estás logueado, ese
+   parámetro abre el modal directo en la vista de perfil (no en el
+   formulario de login). */
+(function(){
+  var SUPABASE_URL='https://hxsjxjsbyvxyoprjqvet.supabase.co';
+  var SUPABASE_ANON_KEY='sb_publishable_S4Unx60Dwha3XMnD9bLCKQ_cJtLICrq';
+  if(!window.supabase) return;
+  var sb=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{flowType:'pkce'}});
+  sb.auth.getSession().then(function(res){
+    var session=res && res.data && res.data.session;
+    if(!session) return;
+    var loginBtn=document.getElementById('loginBtn');
+    var heroLogin=document.getElementById('heroLogin');
+    if(loginBtn) loginBtn.textContent='👤 '+((session.user.email||'Mi cuenta').split('@')[0]);
+    if(heroLogin) heroLogin.style.display='none';
+  }).catch(function(){});
 })();
 </script>
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"}'></script>
