@@ -45,13 +45,32 @@
   --shadow:0 16px 40px rgba(90,70,30,.18);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:hidden}
 body{
   background:var(--bg);color:var(--ink);
   font-family:var(--font-body);font-size:17px;line-height:1.75;
   transition:background .35s,color .35s;
+  /* Los paneles deslizables (LauChat, Mis notas) usan position:fixed +
+     transform para esconderse fuera de pantalla a la derecha. En varios
+     navegadores eso igual cuenta para el ancho "scrolleable" de la
+     página aunque estén ocultos, y deja una franja vacía a la derecha en
+     mobile. overflow-x:hidden lo tapa sin afectar el scroll vertical. */
+  overflow-x:hidden;
+  width:100%;
 }
 ::selection{background:var(--amber);color:#0b0a08}
+
+/* La barra de scroll nunca se había definido, así que quedaba con los
+   colores por defecto del navegador — en Windows/Chrome eso es una franja
+   clara con flechitas blancas, que en el tema oscuro se ve rota/fuera de
+   lugar. Esto la hace seguir la paleta del sitio en los dos temas. */
+html{scrollbar-color:var(--line2) var(--panel); scrollbar-width:thin}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:var(--panel)}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:20px;border:3px solid var(--panel)}
+::-webkit-scrollbar-thumb:hover{background:var(--amber-dim)}
+::-webkit-scrollbar-button{display:none;height:0;width:0;-webkit-appearance:none;background:transparent}
+::-webkit-scrollbar-corner{background:var(--panel)}
 img{max-width:100%}
 
 /* ============ LAYOUT ============ */
@@ -434,7 +453,7 @@ tr:nth-child(even) td{background:var(--panel)}
   padding:3px 9px 3px 7px;border-radius:20px;background:var(--panel3);color:var(--muted);
 }
 .lc-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--muted)}
-.lc-badge.ia{color:var(--cyan);background:rgba(95,198,217,.12)}
+.lc-badge.ia{color:var(--cyan);background:color-mix(in srgb, var(--cyan) 12%, transparent)}
 .lc-badge.ia::before{background:var(--cyan)}
 .lc-answer .lc-txt{font-family:var(--font-body);font-size:13.5px;line-height:1.65;color:var(--ink)}
 .lc-answer .lc-txt p{margin:0 0 10px}
@@ -466,7 +485,7 @@ tr:nth-child(even) td{background:var(--panel)}
 }
 .lc-fb:hover{border-color:var(--cyan);transform:translateY(-1px)}
 .lc-fb:disabled{cursor:default;opacity:.55;transform:none}
-.lc-fb.picked{border-color:var(--amber);background:rgba(245,166,35,.12)}
+.lc-fb.picked{border-color:var(--amber);background:color-mix(in srgb, var(--amber) 12%, transparent)}
 .lc-fb-thanks{font-family:var(--font-mono);font-size:9.5px;color:var(--muted)}
 .lc-foot{
   padding:11px 18px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:9.5px;
@@ -475,8 +494,8 @@ tr:nth-child(even) td{background:var(--panel)}
 @media(prefers-reduced-motion:reduce){.lc-btn i{animation:none}.lc-answer .lc-txt.typing::after{animation:none}}
 
 @media(max-width:520px){
-  body{font-size:16px}
-  .content{padding:24px 16px 110px}
+  body{font-size:15.5px;line-height:1.62}
+  .content{padding:22px 14px 110px}
   .pager button{padding:11px 12px;font-size:11px}
 }
 
@@ -555,10 +574,10 @@ tr:nth-child(even) td{background:var(--panel)}
 
 /* ============ NOTAS (resaltar texto + anotar) ============ */
 mark.df-note{
-  background:rgba(245,166,35,.22);color:inherit;border-bottom:2px solid var(--amber-dim);
+  background:color-mix(in srgb, var(--amber) 22%, transparent);color:inherit;border-bottom:2px solid var(--amber-dim);
   border-radius:2px;cursor:pointer;padding:0 1px;
 }
-mark.df-note:hover{background:rgba(245,166,35,.36)}
+mark.df-note:hover{background:color-mix(in srgb, var(--amber) 36%, transparent)}
 .note-fab{
   position:fixed;z-index:120;display:none;
   background:var(--amber);color:#0b0a08;border:none;border-radius:8px;
