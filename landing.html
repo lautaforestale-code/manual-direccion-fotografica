@@ -50,7 +50,6 @@ body{
   background:var(--bg);color:var(--ink);
   font-family:var(--font-body);font-size:17px;line-height:1.7;
   transition:background .35s,color .35s;
-  overflow-x:hidden;width:100%;
 }
 ::selection{background:var(--amber);color:#0b0a08}
 a{color:inherit}
@@ -147,8 +146,15 @@ footer{border-top:1px solid var(--line);padding:28px 0;text-align:center}
 footer p{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.03em}
 
 @media(max-width:560px){
-  section{padding:40px 0}
-  section.hero{padding-top:10vh}
+  body{font-size:15.5px}
+  section{padding:34px 0}
+  section.hero{padding-top:8vh}
+  .hero h1{font-size:clamp(28px,10vw,40px)}
+  .hero .sub{font-size:15px}
+  .btn-play{padding:13px 20px;font-size:14.5px}
+  .benefits{gap:16px}
+  .roadmap{gap:8px}
+  .chip{font-size:11px;padding:6px 11px}
 }
 </style>
 </head>
