@@ -97,12 +97,17 @@ img{max-width:100%}
 .sb-head{padding:22px 20px 14px 34px;border-bottom:1px solid rgba(255,255,255,.08)}
 .sb-brand{font-family:var(--font-mono);font-size:12px;letter-spacing:.22em;color:var(--amber);font-weight:700}
 .sb-sub{font-size:12px;color:#9a9078;margin-top:6px;line-height:1.5}
-.sb-search{padding:14px 20px 6px 34px}
+.sb-search{padding:14px 20px 6px 34px;display:flex;gap:6px}
 .sb-search input{
-  width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
   color:#efe7d4;padding:9px 12px;border-radius:9px;font-family:var(--font-ui);font-size:13px;
 }
 .sb-search input:focus{outline:none;border-color:var(--amber)}
+.fav-filter{
+  flex:0 0 auto;width:36px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  color:var(--muted);border-radius:9px;font-size:14px;cursor:pointer;
+}
+.fav-filter.on{color:var(--amber);background:color-mix(in srgb, var(--amber) 16%, transparent);border-color:color-mix(in srgb, var(--amber) 40%, transparent)}
 .sb-nav{padding:8px 14px 90px 28px}
 .nav-part{
   font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
@@ -118,6 +123,17 @@ img{max-width:100%}
 .nav-link .dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px;margin-top:6px;background:#3f3a2f}
 .nav-link .dot.on{background:var(--amber)}
 .nav-link.pend{opacity:.55}
+/* Marca de "ya lo leíste", sincronizada con tu cuenta (sin cuenta no
+   aparece nunca, no hay nada que ocultar). */
+.nav-link .rd{margin-left:auto;flex:0 0 auto;color:var(--amber);font-size:10px;opacity:0;padding-left:4px}
+.nav-link.read .rd{opacity:1}
+.nav-link .fav{margin-left:2px;flex:0 0 auto;color:var(--muted);font-size:10px;opacity:0;padding-left:2px}
+.nav-link.fav .fav{opacity:1;color:var(--amber)}
+#fullIndex li.read a{color:var(--ink)}
+#fullIndex li .rd{color:var(--amber);font-size:12px;margin-left:6px}
+#fullIndex li .fav{color:var(--amber);font-size:12px;margin-left:4px}
+#nav.favs-only .nav-link:not(.fav){display:none}
+#nav.favs-only .nav-part{display:none}
 
 /* ============ MAIN ============ */
 .main{flex:1;margin-left:0;min-width:0;transition:margin .32s}
@@ -713,7 +729,10 @@ mark.df-note:hover{background:color-mix(in srgb, var(--amber) 36%, transparent)}
     <div class="sb-brand">◤ MANUAL · DF</div>
     <div class="sb-sub">Iluminación y Cámara · Dirección Fotográfica Cinematográfica</div>
   </div>
-  <div class="sb-search"><input id="search" type="search" placeholder="Buscar capítulo…"></div>
+  <div class="sb-search">
+    <input id="search" type="search" placeholder="Buscar capítulo…">
+    <button class="fav-filter" id="favFilterBtn" title="Ver solo favoritos" type="button" style="display:none">★</button>
+  </div>
   <nav class="sb-nav" id="nav"></nav>
 </aside>
 <div class="overlay" id="overlay"></div>
@@ -840,6 +859,7 @@ mark.df-note:hover{background:color-mix(in srgb, var(--amber) 36%, transparent)}
     <span class="timecode" id="timecode">00:00:00:00</span>
     <div class="prog-wrap"><div class="prog" id="prog"></div></div>
     <button class="tbtn acct-btn" id="acctBtn">👤 Ingresar</button>
+    <button class="tbtn" id="favBtn" title="Marcar este capítulo como favorito" style="display:none">☆</button>
     <button class="tbtn" id="themeBtn">☀ 5600K</button>
   </div>
 
@@ -6227,7 +6247,7 @@ function renderNav(){
     const h=document.createElement('div');h.className='nav-part';h.textContent=g.p;nav.appendChild(h);
     g.items.forEach(i=>{
       const a=document.createElement('a');a.className='nav-link'+(i.on?'':' pend');a.dataset.id=i.id;
-      a.innerHTML=`<span class="dot ${i.on?'on':''}"></span><span class="n">${i.n}</span><span>${i.t}</span>`;
+      a.innerHTML=`<span class="dot ${i.on?'on':''}"></span><span class="n">${i.n}</span><span>${i.t}</span><span class="fav">★</span><span class="rd">✓</span>`;
       a.onclick=()=>go(i.id);nav.appendChild(a);
     });
   });
@@ -6239,7 +6259,7 @@ const fi=document.getElementById('fullIndex');
 STRUCT.forEach(g=>{
   if(g.p==="Inicio")return;
   fi.insertAdjacentHTML('beforeend',`<h3 style="margin-top:22px">${g.p}</h3><ul>${g.items.map(i=>
-    `<li><a data-go="${i.id}" style="cursor:pointer">${i.n}. ${i.t}</a></li>`).join('')}</ul>`);
+    `<li data-id="${i.id}"><a data-go="${i.id}" style="cursor:pointer">${i.n}. ${i.t}</a><span class="fav" style="display:none">★</span><span class="rd" style="display:none">✓</span></li>`).join('')}</ul>`);
 });
 
 /* ---- Grilla de partes (portada) ---- */
@@ -6960,6 +6980,90 @@ addEventListener('hashchange',()=>{
   if(h && document.getElementById(h) && h!==cur) go(h);
 });
 
+/* ================= Progreso visible en la navegación =================
+   Marca ✓ en el sidebar y en el índice completo qué capítulos ya
+   leíste, y ★ los que tenés como favoritos — para que el progreso se
+   vea todo el tiempo en la navegación, no solo escondido en el perfil.
+   Todo llega vía eventos del módulo de cuenta; este código no toca
+   Supabase directo. */
+(function(){
+  const favBtn=document.getElementById('favBtn');
+  const favFilterBtn=document.getElementById('favFilterBtn');
+  const navEl=document.getElementById('nav');
+
+  let hasSession=false, readIds=[], favIds=[];
+
+  function setRead(ids){
+    const set=new Set(ids);
+    document.querySelectorAll('.nav-link[data-id]').forEach(a=>{ a.classList.toggle('read', set.has(a.dataset.id)); });
+    document.querySelectorAll('#fullIndex li[data-id]').forEach(li=>{
+      const on=set.has(li.dataset.id);
+      const rd=li.querySelector('.rd'); if(rd) rd.style.display=on?'':'none';
+    });
+  }
+  function setFavs(ids){
+    const set=new Set(ids);
+    document.querySelectorAll('.nav-link[data-id]').forEach(a=>{ a.classList.toggle('fav', set.has(a.dataset.id)); });
+    document.querySelectorAll('#fullIndex li[data-id]').forEach(li=>{
+      const on=set.has(li.dataset.id);
+      const fv=li.querySelector('.fav'); if(fv) fv.style.display=on?'':'none';
+    });
+  }
+  function updateFavBtn(){
+    if(!favBtn) return;
+    if(!hasSession){ favBtn.style.display='none'; if(favFilterBtn) favFilterBtn.style.display='none'; return; }
+    favBtn.style.display='';
+    if(favFilterBtn) favFilterBtn.style.display='';
+    const isFav=favIds.includes(cur);
+    favBtn.textContent=isFav?'★':'☆';
+    favBtn.title=isFav?'Sacar de favoritos':'Marcar este capítulo como favorito';
+  }
+
+  document.addEventListener('df:progress-restore', e=>{
+    hasSession=true;
+    readIds=(e.detail && e.detail.ids) || [];
+    setRead(readIds);
+    updateFavBtn();
+  });
+  document.addEventListener('df:progress-clear', ()=>{
+    hasSession=false; readIds=[]; favIds=[];
+    setRead([]); setFavs([]);
+    if(navEl) navEl.classList.remove('favs-only');
+    if(favFilterBtn) favFilterBtn.classList.remove('on');
+    updateFavBtn();
+  });
+  document.addEventListener('df:favorites-restore', e=>{
+    favIds=(e.detail && e.detail.ids) || [];
+    setFavs(favIds);
+    updateFavBtn();
+  });
+  // Reflejo optimista: apenas abrís un capítulo nuevo con sesión
+  // iniciada, aparece el ✓ al toque (sin esperar al próximo login).
+  document.addEventListener('df:chapter-open', e=>{
+    const id=e.detail && e.detail.id;
+    if(hasSession && id && !readIds.includes(id)){ readIds.push(id); setRead(readIds); }
+    updateFavBtn();
+  });
+
+  if(favBtn){
+    favBtn.onclick=()=>{
+      if(!hasSession) return;
+      const isFav=favIds.includes(cur);
+      favIds = isFav ? favIds.filter(x=>x!==cur) : favIds.concat([cur]);
+      setFavs(favIds);
+      updateFavBtn();
+      try{ document.dispatchEvent(new CustomEvent('df:favorite-toggle',{detail:{id:cur, favorited:!isFav}})); }catch(_){}
+    };
+  }
+  if(favFilterBtn){
+    favFilterBtn.onclick=()=>{
+      if(!navEl) return;
+      const on=navEl.classList.toggle('favs-only');
+      favFilterBtn.classList.toggle('on', on);
+    };
+  }
+})();
+
 /* ================= Notas (resaltar texto + anotar) =================
    Módulo independiente del de cuenta: no toca Supabase directo, solo
    dispara/escucha eventos (mismo patrón ya usado para LauChat/progreso
@@ -7352,11 +7456,12 @@ addEventListener('hashchange',()=>{
     renderState();
     if(session){
       refreshStat();
-      if(!historySynced){ historySynced=true; syncChatHistory(); syncNotes(); }
+      if(!historySynced){ historySynced=true; syncChatHistory(); syncNotes(); syncFavorites(); }
     }else if(hadSession){
       historySynced=false;
       try{ document.dispatchEvent(new CustomEvent('df:chat-clear')); }catch(_){}
       try{ document.dispatchEvent(new CustomEvent('df:notes-clear')); }catch(_){}
+      try{ document.dispatchEvent(new CustomEvent('df:progress-clear')); }catch(_){}
     }
   }
   sb.auth.onAuthStateChange((_event, s)=>{ onSessionChange(s); });
@@ -7408,6 +7513,7 @@ addEventListener('hashchange',()=>{
         sb.from('user_notes').select('id',{count:'exact',head:true}).eq('manual_area',MANUAL_AREA),
       ]);
       const list=rows||[];
+      try{ document.dispatchEvent(new CustomEvent('df:progress-restore',{detail:{ids:list.map(r=>r.chapter_id)}})); }catch(_){}
       const total=(typeof FLAT!=='undefined' && FLAT.length) || 52;
       const read=list.length;
       const pct=total ? Math.round((read/total)*100) : 0;
@@ -7564,6 +7670,32 @@ addEventListener('hashchange',()=>{
       document.dispatchEvent(new CustomEvent('df:notes-restore',{detail:{notes:[]}}));
     }
   }
+
+  // Trae los favoritos guardados y le avisa al módulo de navegación
+  // (evento df:favorites-restore) para que pinte las ★ en el sidebar y
+  // el índice completo.
+  async function syncFavorites(){
+    try{
+      const {data, error}=await sb.from('favorites').select('chapter_id').eq('manual_area', MANUAL_AREA);
+      document.dispatchEvent(new CustomEvent('df:favorites-restore',{detail:{ids: error ? [] : (data||[]).map(r=>r.chapter_id)}}));
+    }catch(_){
+      document.dispatchEvent(new CustomEvent('df:favorites-restore',{detail:{ids:[]}}));
+    }
+  }
+
+  // El botón ★ de la topbar dispara esto al marcar/desmarcar un
+  // capítulo como favorito (ya actualizó su propia UI de forma
+  // optimista — acá solo persistimos en Supabase).
+  document.addEventListener('df:favorite-toggle', e=>{
+    if(!session) return;
+    const d=e.detail||{};
+    if(!d.id) return;
+    if(d.favorited){
+      sb.from('favorites').insert({user_id:session.user.id, manual_area:MANUAL_AREA, chapter_id:d.id}).then(()=>{}).catch(()=>{});
+    }else{
+      sb.from('favorites').delete().eq('user_id', session.user.id).eq('manual_area', MANUAL_AREA).eq('chapter_id', d.id).then(()=>{}).catch(()=>{});
+    }
+  });
 
   // El módulo de notas dispara esto al guardar una nota nueva (después de
   // que el lector seleccionó texto y escribió su nota). Insertamos en

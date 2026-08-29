@@ -108,3 +108,28 @@ create policy "delete own user_notes" on public.user_notes
 
 create index if not exists idx_user_notes_user on public.user_notes(user_id);
 create index if not exists idx_user_notes_chapter on public.user_notes(user_id, manual_area, chapter_id);
+
+-- ============================================================
+-- favorites — capítulos marcados para volver rápido (distinto de
+-- reading_progress: esto es "quiero consultarlo de nuevo", no "ya lo
+-- leí"). Sin update: se crea o se borra, no se edita.
+-- ============================================================
+create table if not exists public.favorites (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  manual_area text not null default 'fotografia',
+  chapter_id text not null,
+  created_at timestamptz not null default now(),
+  unique (user_id, manual_area, chapter_id)
+);
+
+alter table public.favorites enable row level security;
+
+create policy "select own favorites" on public.favorites
+  for select using (auth.uid() = user_id);
+create policy "insert own favorites" on public.favorites
+  for insert with check (auth.uid() = user_id);
+create policy "delete own favorites" on public.favorites
+  for delete using (auth.uid() = user_id);
+
+create index if not exists idx_favorites_user on public.favorites(user_id);
