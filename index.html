@@ -539,13 +539,79 @@ tr:nth-child(even) td{background:var(--panel)}
 .acct-profile .who b{color:var(--amber)}
 .acct-profile .stat{
   background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--amber);
-  border-radius:8px;padding:10px 13px;font-size:12.5px;color:var(--ink-dim);
+  border-radius:8px;padding:12px 13px;font-size:12.5px;color:var(--ink-dim);
 }
+.stat-top{display:flex;align-items:baseline;gap:7px;margin-bottom:8px}
+.stat-pct{font-family:var(--font-ui);font-weight:800;font-size:22px;color:var(--amber);font-variant-numeric:tabular-nums}
+.stat-frac{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.stat-bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:9px}
+.stat-bar-fill{height:100%;background:linear-gradient(90deg,var(--amber-dim),var(--amber));border-radius:3px;transition:width .4s ease}
+.stat-sub{font-size:12px;line-height:1.5}
 .acct-signout{
   background:var(--panel2);border:1px solid var(--line2);color:var(--ink);
   border-radius:9px;padding:10px;font:inherit;font-size:13px;cursor:pointer;
 }
 .acct-signout:hover{border-color:#e07a5f;color:#e07a5f}
+
+/* ============ NOTAS (resaltar texto + anotar) ============ */
+mark.df-note{
+  background:rgba(245,166,35,.22);color:inherit;border-bottom:2px solid var(--amber-dim);
+  border-radius:2px;cursor:pointer;padding:0 1px;
+}
+mark.df-note:hover{background:rgba(245,166,35,.36)}
+.note-fab{
+  position:fixed;z-index:120;display:none;
+  background:var(--amber);color:#0b0a08;border:none;border-radius:8px;
+  padding:8px 13px;font-family:var(--font-ui);font-weight:800;font-size:12.5px;cursor:pointer;
+  box-shadow:0 8px 20px rgba(0,0,0,.35);
+}
+.note-fab.on{display:block}
+.note-pop{
+  position:fixed;z-index:121;display:none;width:min(320px,90vw);
+  background:var(--panel);border:1px solid var(--line2);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.45);padding:14px;
+}
+.note-pop.on{display:block}
+.np-quote{
+  font-family:var(--font-body);font-style:italic;font-size:12.5px;color:var(--ink-dim);
+  border-left:3px solid var(--amber-dim);padding:2px 0 2px 10px;margin-bottom:10px;
+  max-height:70px;overflow:auto;line-height:1.4;
+}
+.np-text{
+  width:100%;min-height:70px;resize:vertical;background:var(--panel2);border:1px solid var(--line2);
+  color:var(--ink);border-radius:8px;padding:9px 10px;font:inherit;font-size:13px;line-height:1.5;
+}
+.np-text:focus{outline:none;border-color:var(--amber)}
+.np-body{font-size:13px;line-height:1.5;color:var(--ink);margin-bottom:6px;white-space:pre-wrap}
+.np-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.np-cancel,.np-save{
+  font-family:var(--font-ui);font-size:12.5px;font-weight:700;border-radius:8px;cursor:pointer;padding:8px 13px;
+}
+.np-cancel{background:none;border:1px solid var(--line2);color:var(--muted)}
+.np-cancel:hover{color:var(--ink)}
+.np-save{background:var(--amber);border:none;color:#0b0a08}
+
+.notes-list{flex:1;overflow:auto;padding:14px 18px}
+.notes-empty{font-size:13px;color:var(--muted);line-height:1.6}
+.note-item{
+  background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;margin-bottom:10px;
+}
+.note-item .ni-chap{
+  font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--amber);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;
+}
+.note-item .ni-chap a{color:var(--amber);cursor:pointer;text-decoration:none}
+.note-item .ni-chap a:hover{text-decoration:underline}
+.note-item .ni-quote{
+  font-family:var(--font-body);font-style:italic;font-size:12px;color:var(--ink-dim);
+  border-left:2px solid var(--amber-dim);padding-left:8px;margin-bottom:6px;line-height:1.4;
+}
+.note-item .ni-text{font-size:13px;line-height:1.5;color:var(--ink)}
+.note-item .ni-del{
+  background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;margin-top:6px;padding:0;
+}
+.note-item .ni-del:hover{color:#e07a5f}
 </style>
 </head>
 <body>
@@ -595,7 +661,12 @@ tr:nth-child(even) td{background:var(--panel)}
   <div class="acct-profile" id="acctProfile" style="display:none">
     <h3>Tu cuenta</h3>
     <div class="who">Conectado como <b id="acctEmail"></b></div>
-    <div class="stat" id="acctStat">Tu progreso y tus charlas con LauChat AI se guardan automáticamente en tu cuenta.</div>
+    <div class="stat" id="acctStat">
+      <div class="stat-top"><span class="stat-pct" id="acctPct">0%</span><span class="stat-frac" id="acctFrac">leído</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="acctBarFill" style="width:0%"></div></div>
+      <div class="stat-sub" id="acctStatSub">Tus charlas con LauChat AI se guardan en tu cuenta y te siguen en cualquier dispositivo.</div>
+    </div>
+    <button class="acct-signout" id="acctNotesBtn" type="button" style="border-color:var(--amber-dim);color:var(--amber)">✎ Ver mis notas<span id="acctNotesCount"></span></button>
     <button class="acct-signout" id="acctSignOut">Cerrar sesión</button>
   </div>
 
@@ -618,6 +689,43 @@ tr:nth-child(even) td{background:var(--panel)}
       <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6 29.6 4 24 4c-7.4 0-13.8 4.1-17.1 10.1z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.1-5.1l-6.5-5.5C29.6 35.1 27 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.9 39.8 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6.5 5.5C41.4 35.6 44 30.2 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
       Continuar con Google
     </button>
+  </div>
+</div>
+
+<!-- ================= NOTAS (resaltar texto + anotar) =================
+     Panel lateral "Mis notas" (reusa la estructura .lc-panel/.lc-overlay
+     ya definida para LauChat, para no duplicar CSS) + la mini-barra que
+     aparece al seleccionar texto + los popovers de crear/ver nota. Todo
+     esto solo hace algo si hay una cuenta logueada: sin cuenta, seleccionar
+     texto no muestra nada nuevo. -->
+<div class="lc-overlay" id="notesOverlay"></div>
+<aside class="lc-panel" id="notesPanel">
+  <div class="lc-head">
+    <div class="lc-brand"><b>✎ MIS NOTAS</b><button class="lc-close" id="notesClose" aria-label="Cerrar">×</button></div>
+    <div class="lc-sub">Lo que vas marcando y anotando mientras leés, capítulo por capítulo.</div>
+  </div>
+  <div class="notes-list" id="notesList">
+    <div class="notes-empty" id="notesEmpty">Todavía no tenés notas. Seleccioná cualquier fragmento de texto del manual y tocá "✎ Nota" para dejar la primera.</div>
+  </div>
+</aside>
+
+<button class="note-fab" id="noteFab" type="button">✎ Nota</button>
+
+<div class="note-pop" id="noteComposer">
+  <div class="np-quote" id="ncQuote"></div>
+  <textarea class="np-text" id="ncText" maxlength="600" placeholder="Escribí tu nota sobre este fragmento…"></textarea>
+  <div class="np-actions">
+    <button class="np-cancel" id="ncCancel" type="button">Cancelar</button>
+    <button class="np-save" id="ncSave" type="button">Guardar nota</button>
+  </div>
+</div>
+
+<div class="note-pop" id="noteView">
+  <div class="np-quote" id="nvQuote"></div>
+  <div class="np-body" id="nvText"></div>
+  <div class="np-actions">
+    <button class="np-cancel" id="nvDelete" type="button" style="color:#e07a5f">🗑 Borrar</button>
+    <button class="np-save" id="nvClose" type="button">Cerrar</button>
   </div>
 </div>
 
@@ -660,14 +768,6 @@ tr:nth-child(even) td{background:var(--panel)}
               <p>Es como si te respondiera yo mismo: preguntale lo que quieras — de este manual, de cine, del oficio en general — y te contesta con conocimiento real, citando el capítulo y la sección cuando corresponde.</p>
             </div>
             <button class="lp-btn" type="button" id="lauchatPromoBtn">Hablar con LauChat AI →</button>
-          </div>
-          <div class="grid">
-            <div class="cell"><small>DIRECTOR</small><span>Lautaro Forestale</span></div>
-            <div class="cell"><small>VERSIÓN</small><span>25 / AGO / 2026</span></div>
-            <div class="cell"><small>TAKE</small><span>06</span></div>
-            <div class="cell"><small>ESCENA</small><span>I – IX + ANEXOS</span></div>
-            <div class="cell"><small>FORMATO</small><span>2.39 : 1</span></div>
-            <div class="cell"><small>ROLL</small><span>A – C</span></div>
           </div>
         </div>
       </div>
@@ -6765,6 +6865,234 @@ addEventListener('hashchange',()=>{
   if(h && document.getElementById(h) && h!==cur) go(h);
 });
 
+/* ================= Notas (resaltar texto + anotar) =================
+   Módulo independiente del de cuenta: no toca Supabase directo, solo
+   dispara/escucha eventos (mismo patrón ya usado para LauChat/progreso
+   de lectura). Sin sesión iniciada, seleccionar texto no guarda nada —
+   invita a loguearse. El módulo de cuenta (más abajo) es quien de verdad
+   sabe si hay sesión y quien habla con Supabase. */
+(function(){
+  const fab=document.getElementById('noteFab');
+  const composer=document.getElementById('noteComposer');
+  const ncQuote=document.getElementById('ncQuote'), ncText=document.getElementById('ncText'),
+        ncCancel=document.getElementById('ncCancel'), ncSave=document.getElementById('ncSave');
+  const view=document.getElementById('noteView');
+  const nvQuote=document.getElementById('nvQuote'), nvText=document.getElementById('nvText'),
+        nvDelete=document.getElementById('nvDelete'), nvClose=document.getElementById('nvClose');
+  const notesOverlay=document.getElementById('notesOverlay'), notesPanel=document.getElementById('notesPanel'),
+        notesClose=document.getElementById('notesClose'), notesList=document.getElementById('notesList'),
+        notesEmpty=document.getElementById('notesEmpty'), acctNotesBtn=document.getElementById('acctNotesBtn'),
+        acctNotesCount=document.getElementById('acctNotesCount'), contentEl=document.getElementById('content');
+
+  let hasSession=false;   // lo confirma el módulo de cuenta vía df:notes-restore
+  let pending=null;       // {text, chapterId} de la selección activa
+  let notesCache=[];      // notas cargadas: {id, chapter_id, quote, note}
+
+  function hideFab(){ fab.classList.remove('on'); }
+  function hidePopups(){ composer.classList.remove('on'); view.classList.remove('on'); }
+
+  function chapterTitle(id){
+    try{
+      const item=(typeof FLAT!=='undefined') && FLAT.find(i=>i.id===id);
+      if(item) return (item.n?item.n+'. ':'')+item.t;
+    }catch(_){}
+    return id;
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function positionPop(pop, rect){
+    pop.style.top=Math.min(Math.max(8, rect.top), innerHeight-330)+'px';
+    pop.style.left=Math.min(Math.max(8, rect.left), innerWidth-336)+'px';
+  }
+
+  // ---- Detección de selección de texto dentro de un capítulo ----
+  function onSelectionChange(){
+    const sel=window.getSelection();
+    if(!sel || sel.isCollapsed || !sel.toString().trim()){ hideFab(); return; }
+    const text=sel.toString().trim();
+    if(text.length<3 || text.length>500){ hideFab(); return; }
+    const anchorEl=sel.anchorNode && (sel.anchorNode.nodeType===1 ? sel.anchorNode : sel.anchorNode.parentElement);
+    const chapterEl=anchorEl && anchorEl.closest && anchorEl.closest('.chapter');
+    if(!chapterEl || !contentEl.contains(chapterEl)){ hideFab(); return; }
+    const rect=sel.getRangeAt(0).getBoundingClientRect();
+    if(!rect || (!rect.width && !rect.height)){ hideFab(); return; }
+    fab.style.top=Math.max(8, rect.top-40)+'px';
+    fab.style.left=Math.max(8, rect.left)+'px';
+    fab.classList.add('on');
+    pending={text, chapterId:chapterEl.id};
+  }
+  document.addEventListener('selectionchange', ()=>{
+    clearTimeout(onSelectionChange._t);
+    onSelectionChange._t=setTimeout(onSelectionChange, 180);
+  });
+
+  fab.onclick=()=>{
+    if(!pending) return;
+    hideFab();
+    if(!hasSession){
+      try{ document.dispatchEvent(new CustomEvent('df:request-login')); }catch(_){}
+      pending=null;
+      return;
+    }
+    ncQuote.textContent='"'+pending.text+'"';
+    ncText.value='';
+    positionPop(composer, fab.getBoundingClientRect());
+    composer.classList.add('on');
+    setTimeout(()=>ncText.focus(), 50);
+  };
+  ncCancel.onclick=()=>{ composer.classList.remove('on'); pending=null; };
+  ncSave.onclick=()=>{
+    const noteText=ncText.value.trim();
+    if(!noteText || !pending) return;
+    try{
+      document.dispatchEvent(new CustomEvent('df:note-save',{detail:{
+        chapterId:pending.chapterId, quote:pending.text, note:noteText
+      }}));
+    }catch(_){}
+    composer.classList.remove('on');
+    pending=null;
+    try{ window.getSelection().removeAllRanges(); }catch(_){}
+  };
+
+  // ---- Click en una nota ya resaltada en el texto ----
+  document.addEventListener('click', e=>{
+    const mark=e.target.closest('mark.df-note');
+    if(!mark) return;
+    const n=notesCache.find(x=>String(x.id)===String(mark.dataset.noteId));
+    if(!n) return;
+    nvQuote.textContent='"'+n.quote+'"';
+    nvText.textContent=n.note;
+    nvDelete.dataset.noteId=n.id;
+    positionPop(view, mark.getBoundingClientRect());
+    view.classList.add('on');
+  });
+  nvClose.onclick=()=>view.classList.remove('on');
+  nvDelete.onclick=()=>{
+    const id=nvDelete.dataset.noteId;
+    if(!id) return;
+    view.classList.remove('on');
+    removeNoteFromUI(id);
+    try{ document.dispatchEvent(new CustomEvent('df:note-delete',{detail:{id}})); }catch(_){}
+  };
+
+  // ---- Resaltar una cita dentro de un capítulo: busca el texto exacto
+  // (no un rango de DOM guardado) para que sea robusto a que el capítulo
+  // se haya editado después de tomar la nota. ----
+  function highlightQuote(chapterId, quote, noteId){
+    const section=document.getElementById(chapterId);
+    if(!section || !quote) return false;
+    const walker=document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
+      acceptNode(node){
+        if(node.parentElement && node.parentElement.closest('mark.df-note,script,style')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes=[]; let full=''; let n;
+    while(n=walker.nextNode()){ nodes.push({node:n,start:full.length}); full+=n.nodeValue; }
+    const idx=full.indexOf(quote);
+    if(idx===-1) return false;
+    const end=idx+quote.length;
+    let startNode=null,startOffset=0,endNode=null,endOffset=0;
+    for(const item of nodes){
+      const nodeEnd=item.start+item.node.nodeValue.length;
+      if(startNode===null && idx>=item.start && idx<nodeEnd){ startNode=item.node; startOffset=idx-item.start; }
+      if(end>item.start && end<=nodeEnd){ endNode=item.node; endOffset=end-item.start; break; }
+    }
+    if(!startNode||!endNode) return false;
+    try{
+      const range=document.createRange();
+      range.setStart(startNode,startOffset);
+      range.setEnd(endNode,endOffset);
+      const mark=document.createElement('mark');
+      mark.className='df-note';
+      mark.dataset.noteId=noteId;
+      mark.title='Nota tuya — click para verla';
+      range.surroundContents(mark);
+      return true;
+    }catch(_){ return false; }
+  }
+
+  function unwrapMark(m){
+    const parent=m.parentNode;
+    if(!parent) return;
+    while(m.firstChild) parent.insertBefore(m.firstChild, m);
+    parent.removeChild(m);
+    parent.normalize();
+  }
+  function removeAllHighlights(){
+    document.querySelectorAll('mark.df-note').forEach(unwrapMark);
+  }
+  function removeNoteFromUI(id){
+    notesCache=notesCache.filter(n=>String(n.id)!==String(id));
+    document.querySelectorAll('mark.df-note[data-note-id="'+CSS.escape(String(id))+'"]').forEach(unwrapMark);
+    renderNotesList();
+  }
+
+  // ---- Panel "Mis notas" ----
+  function renderNotesList(){
+    notesList.innerHTML='';
+    if(!notesCache.length){
+      notesList.appendChild(notesEmpty);
+      acctNotesCount.textContent='';
+      return;
+    }
+    acctNotesCount.textContent=' ('+notesCache.length+')';
+    notesCache.slice().reverse().forEach(n=>{
+      const item=document.createElement('div');
+      item.className='note-item';
+      item.innerHTML='<div class="ni-chap"><span>'+escapeHtml(chapterTitle(n.chapter_id))+'</span><a data-go="'+n.chapter_id+'">Ir al capítulo →</a></div>'
+        +'<div class="ni-quote">"'+escapeHtml(n.quote)+'"</div>'
+        +'<div class="ni-text">'+escapeHtml(n.note)+'</div>'
+        +'<button class="ni-del" data-id="'+n.id+'">🗑 Borrar nota</button>';
+      notesList.appendChild(item);
+    });
+  }
+  notesList.addEventListener('click', e=>{
+    const del=e.target.closest('.ni-del');
+    if(del){
+      removeNoteFromUI(del.dataset.id);
+      try{ document.dispatchEvent(new CustomEvent('df:note-delete',{detail:{id:del.dataset.id}})); }catch(_){}
+      return;
+    }
+    if(e.target.closest('[data-go]')) closeNotesPanel(); // la navegación la hace el listener global de [data-go]
+  });
+
+  function openNotesPanel(){ notesPanel.classList.add('open'); notesOverlay.classList.add('on'); }
+  function closeNotesPanel(){ notesPanel.classList.remove('open'); notesOverlay.classList.remove('on'); }
+  acctNotesBtn.onclick=()=>{
+    try{ document.dispatchEvent(new CustomEvent('df:close-account-modal')); }catch(_){}
+    openNotesPanel();
+  };
+  notesClose.onclick=closeNotesPanel;
+  notesOverlay.onclick=closeNotesPanel;
+
+  // ---- Eventos que llegan del módulo de cuenta ----
+  document.addEventListener('df:notes-restore', e=>{
+    hasSession=true;
+    notesCache=(e.detail && e.detail.notes) || [];
+    removeAllHighlights();
+    notesCache.forEach(n=>highlightQuote(n.chapter_id, n.quote, n.id));
+    renderNotesList();
+  });
+  document.addEventListener('df:notes-clear', ()=>{
+    hasSession=false;
+    notesCache=[];
+    removeAllHighlights();
+    renderNotesList();
+    hideFab(); hidePopups(); closeNotesPanel();
+  });
+  document.addEventListener('df:note-saved', e=>{
+    const n=e.detail;
+    if(!n) return;
+    notesCache.push(n);
+    highlightQuote(n.chapter_id, n.quote, n.id);
+    renderNotesList();
+  });
+
+  addEventListener('keydown', e=>{ if(e.key==='Escape'){ hideFab(); hidePopups(); } });
+})();
+
 /* ================= Cuenta de usuario (Supabase) =================
    Sistema de auth OPCIONAL: hasta que Lautaro pegue sus credenciales
    reales de Supabase acá abajo, este módulo se auto-desactiva sin
@@ -6785,7 +7113,9 @@ addEventListener('hashchange',()=>{
   const btn=document.getElementById('acctBtn'), overlay=document.getElementById('acctOverlay'),
         modal=document.getElementById('acctModal'), closeB=document.getElementById('acctClose'),
         profileView=document.getElementById('acctProfile'), authView=document.getElementById('acctAuthView'),
-        emailLbl=document.getElementById('acctEmail'), statLbl=document.getElementById('acctStat'),
+        emailLbl=document.getElementById('acctEmail'),
+        pctLbl=document.getElementById('acctPct'), fracLbl=document.getElementById('acctFrac'),
+        barFill=document.getElementById('acctBarFill'), statSub=document.getElementById('acctStatSub'),
         signOutB=document.getElementById('acctSignOut'),
         tabIn=document.getElementById('acctTabIn'), tabUp=document.getElementById('acctTabUp'),
         acctForm=document.getElementById('acctForm'), emailIn=document.getElementById('acctEmailInput'),
@@ -6798,6 +7128,11 @@ addEventListener('hashchange',()=>{
   function closeModal(){ overlay.classList.remove('on'); modal.classList.remove('on'); }
   overlay.onclick=closeModal; closeB.onclick=closeModal;
   addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+  // El módulo de notas pide esto cuando alguien sin sesión toca "+ Nota",
+  // y también cuando se abre el panel "Mis notas" (para no tener los dos
+  // paneles superpuestos).
+  document.addEventListener('df:request-login', openModal);
+  document.addEventListener('df:close-account-modal', closeModal);
 
   function setMode(m){
     mode=m;
@@ -6891,10 +7226,11 @@ addEventListener('hashchange',()=>{
     renderState();
     if(session){
       refreshStat();
-      if(!historySynced){ historySynced=true; syncChatHistory(); }
+      if(!historySynced){ historySynced=true; syncChatHistory(); syncNotes(); }
     }else if(hadSession){
       historySynced=false;
       try{ document.dispatchEvent(new CustomEvent('df:chat-clear')); }catch(_){}
+      try{ document.dispatchEvent(new CustomEvent('df:notes-clear')); }catch(_){}
     }
   }
   sb.auth.onAuthStateChange((_event, s)=>{ onSessionChange(s); });
@@ -6905,7 +7241,14 @@ addEventListener('hashchange',()=>{
     try{
       const {count}=await sb.from('reading_progress').select('id',{count:'exact',head:true}).eq('manual_area',MANUAL_AREA);
       const total=(typeof FLAT!=='undefined' && FLAT.length) || 52;
-      statLbl.textContent='Leíste '+(count||0)+' de '+total+' secciones del manual. Tu historial con LauChat AI se guarda en tu cuenta y te sigue en cualquier dispositivo.';
+      const read=count||0;
+      const pct=total ? Math.round((read/total)*100) : 0;
+      pctLbl.textContent=pct+'%';
+      fracLbl.textContent=read+' de '+total+' secciones';
+      barFill.style.width=pct+'%';
+      statSub.textContent = read>0
+        ? 'Tus charlas con LauChat AI se guardan en tu cuenta y te siguen en cualquier dispositivo.'
+        : 'Todavía no marcaste ningún capítulo como leído — arrancá por cualquiera y volvé por acá.';
     }catch(_){ /* si falla, se queda el mensaje genérico del HTML */ }
   }
 
@@ -6925,6 +7268,47 @@ addEventListener('hashchange',()=>{
       document.dispatchEvent(new CustomEvent('df:chat-restore',{detail:{messages:data||[]}}));
     }catch(_){ /* si falla, el panel se queda como estaba (historial local, si había) */ }
   }
+
+  // Trae las notas guardadas de esta cuenta y le avisa al módulo de notas
+  // (evento df:notes-restore) para que las resalte en el texto y arme el
+  // panel "Mis notas". Se manda siempre (aunque no haya ninguna todavía):
+  // ese evento es también la señal de "ya podés dejar notas nuevas".
+  async function syncNotes(){
+    try{
+      const {data, error}=await sb.from('user_notes')
+        .select('id,chapter_id,quote,note')
+        .eq('manual_area', MANUAL_AREA)
+        .order('created_at', {ascending:true});
+      document.dispatchEvent(new CustomEvent('df:notes-restore',{detail:{notes: error ? [] : (data||[])}}));
+    }catch(_){
+      document.dispatchEvent(new CustomEvent('df:notes-restore',{detail:{notes:[]}}));
+    }
+  }
+
+  // El módulo de notas dispara esto al guardar una nota nueva (después de
+  // que el lector seleccionó texto y escribió su nota). Insertamos en
+  // Supabase y, si sale bien, avisamos de vuelta con la fila real (con su
+  // id) para que el módulo de notas pueda resaltarla en el texto.
+  document.addEventListener('df:note-save', async e=>{
+    if(!session) return;
+    const d=e.detail||{};
+    if(!d.chapterId || !d.quote || !d.note) return;
+    try{
+      const {data, error}=await sb.from('user_notes')
+        .insert({user_id:session.user.id, manual_area:MANUAL_AREA, chapter_id:d.chapterId, quote:d.quote, note:d.note})
+        .select('id,chapter_id,quote,note')
+        .single();
+      if(error || !data) return;
+      document.dispatchEvent(new CustomEvent('df:note-saved',{detail:data}));
+    }catch(_){}
+  });
+
+  document.addEventListener('df:note-delete', e=>{
+    if(!session) return;
+    const id=e.detail && e.detail.id;
+    if(!id) return;
+    sb.from('user_notes').delete().eq('id', id).then(()=>{}).catch(()=>{});
+  });
 
   // ---- Sincronización con el resto del sitio, vía eventos custom ----
   // (así este módulo no necesita que go()/answer()/sendFeedback() sepan que existe)

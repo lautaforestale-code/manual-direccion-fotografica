@@ -74,3 +74,35 @@ create index if not exists idx_reading_progress_user on public.reading_progress(
 create index if not exists idx_chat_messages_user on public.chat_messages(user_id);
 create index if not exists idx_chat_messages_created on public.chat_messages(created_at);
 create index if not exists idx_chat_feedback_user on public.chat_feedback(user_id);
+
+-- ============================================================
+-- user_notes — notas ancladas a un fragmento de texto exacto (estilo
+-- "resaltar y anotar"). El anclaje se guarda como el texto citado
+-- (quote), no como un rango del DOM: así una nota sigue siendo válida
+-- aunque el capítulo se edite después, mientras esa frase exacta no
+-- se borre. Si en el futuro el texto cambia y la cita ya no aparece,
+-- el front simplemente no la resalta (pero la nota no se pierde).
+-- ============================================================
+create table if not exists public.user_notes (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  manual_area text not null default 'fotografia',
+  chapter_id text not null,
+  quote text not null,
+  note text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.user_notes enable row level security;
+
+create policy "select own user_notes" on public.user_notes
+  for select using (auth.uid() = user_id);
+create policy "insert own user_notes" on public.user_notes
+  for insert with check (auth.uid() = user_id);
+create policy "update own user_notes" on public.user_notes
+  for update using (auth.uid() = user_id);
+create policy "delete own user_notes" on public.user_notes
+  for delete using (auth.uid() = user_id);
+
+create index if not exists idx_user_notes_user on public.user_notes(user_id);
+create index if not exists idx_user_notes_chapter on public.user_notes(user_id, manual_area, chapter_id);
