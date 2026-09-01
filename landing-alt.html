@@ -29,7 +29,10 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;overflow-x:hidden}
-body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:16.5px;line-height:1.65}
+body{
+  background-color:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:16.5px;line-height:1.65;
+  background-image:radial-gradient(rgba(23,20,15,.045) .5px,transparent .6px);background-size:3px 3px;
+}
 ::selection{background:var(--amber);color:var(--ink)}
 a{color:inherit}
 img,svg{display:block;max-width:100%}
@@ -95,6 +98,25 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 @keyframes wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 @media(prefers-reduced-motion:reduce){.wedge{animation:none}}
 
+/* Iris de lente: anillos concéntricos, un solo div con radial repetido —
+   le da profundidad a la cuña plana sin agregar otro color. */
+.iris{
+  position:absolute;top:52%;left:2%;transform:translateY(-50%);width:300px;height:300px;z-index:0;
+  border-radius:50%;pointer-events:none;
+  background:repeating-radial-gradient(circle at center,transparent 0 22px,rgba(23,20,15,.1) 22px 23px);
+}
+@media(max-width:700px){.iris{width:220px;height:220px;left:-30px}}
+.regmark{position:absolute;width:18px;height:18px;z-index:2;opacity:.5;pointer-events:none}
+.regmark::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--ink);transform:translateY(-.5px)}
+.regmark::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink);transform:translateX(-.5px)}
+.regmark.tr{top:14px;right:14px}
+.regmark.br{bottom:14px;right:14px}
+
+.spec-stack{
+  position:absolute;top:20px;right:26px;z-index:2;text-align:right;
+  font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;line-height:2;color:rgba(23,20,15,.55);
+}
+
 .kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:#fff;text-transform:uppercase;position:relative;z-index:2}
 
 .ca-title{position:relative;margin-top:14px;z-index:2}
@@ -131,11 +153,18 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 @media(prefers-reduced-motion:reduce){.ticker-track{animation:none}.ticker-track .dup{display:none}}
 
 /* ---- Latas de película: el englobe ---- */
-.cans{padding:34px 8px 40px;display:flex;gap:24px;align-items:flex-end;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
-.can{display:flex;flex-direction:column;align-items:center;gap:9px;text-decoration:none;color:inherit}
+.cans{padding:40px 8px 40px;display:flex;gap:24px;align-items:flex-end;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.cans::before{
+  content:'';position:absolute;left:8%;right:8%;top:50%;height:1px;z-index:0;transform:translateY(-40px);
+  background-image:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 15px);opacity:.22;
+}
+.can{display:flex;flex-direction:column;align-items:center;gap:9px;text-decoration:none;color:inherit;position:relative;z-index:1}
 .can .lid{width:96px;height:96px;border-radius:50%;border:5px solid var(--ink);position:relative;display:flex;align-items:center;justify-content:center;background:var(--paper2)}
 .can.on .lid{background:var(--amber);border-color:var(--ink)}
-.can .lid .hub{width:24px;height:24px;border-radius:50%;background:var(--ink)}
+.can .lid .hub{
+  width:24px;height:24px;border-radius:50%;background:var(--ink);
+  box-shadow:0 -33px 0 -9px var(--ink),0 33px 0 -9px var(--ink),33px 0 0 -9px var(--ink),-33px 0 0 -9px var(--ink);
+}
 .can .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;text-align:center;color:var(--ink-dim);max-width:118px;line-height:1.5}
 .can .tag b{display:block;font-family:var(--font-display);font-weight:700;font-size:12.5px;text-transform:uppercase;color:var(--ink);margin-bottom:2px}
 .can.rot1{transform:rotate(-6deg)}
@@ -206,6 +235,10 @@ footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter
 
       <div class="hero-body">
         <div class="wedge"></div>
+        <div class="iris"></div>
+        <span class="regmark tr"></span>
+        <span class="regmark br"></span>
+        <div class="spec-stack">35MM<br>COLOR NEG.<br>2.39 : 1</div>
         <span class="kicker">◆ Se abre en negro —</span>
         <div class="ca-title">
           <h1 class="ghost ghost-a" aria-hidden="true">Manual<span class="line2">de Cine</span></h1>
