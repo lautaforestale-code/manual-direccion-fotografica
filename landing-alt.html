@@ -3,25 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#f2ede1">
+<meta name="theme-color" content="#151310">
 <meta name="author" content="Lautaro Forestale">
 <meta name="robots" content="noindex">
 <meta name="description" content="Manuales de cine escritos de punta a punta por Lautaro Forestale, desde la experiencia real de set. Arranca Dirección de Fotografía — Dirección y Guión, en camino.">
 <title>Manual de Cine — Lautaro Forestale (alternativa visual)</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e0a44c'/%3E%3Ctext x='50' y='68' font-size='62' text-anchor='middle' fill='%2317140f'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23151310'/%3E%3Ctext x='50' y='68' font-size='62' text-anchor='middle' fill='%23e8ad57'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* ============ ALTERNATIVA — "Títulos de apertura" ============
-   Página aparte, no reemplaza a landing.html. Un solo acento (ámbar,
-   más claro que el resto del sitio) contra tinta neutra sobre papel
-   de film stock envejecido — nada de dos colores enfrentados. */
+/* ============ ALTERNATIVA — "Títulos de apertura", modo oscuro ============
+   Sala de proyección en vez de afiche de día: mismo sistema de dos
+   tintas + un acento, pero invertido con cuidado (no espejado a lo
+   bruto) — todo lo que se apoya directo sobre el ámbar usa una tinta
+   fija oscura (--title-ink) para que la letra nunca pierda contraste,
+   sea cual sea el fondo general. */
 :root{
-  --paper:#f2ede1; --paper2:#faf7ef; --panel:#e9e2ce;
-  --ink:#17140f; --ink-dim:#6b6255; --muted:#8a7f66;
-  --line:#d9d0b8; --line2:#c7bb9c;
-  --amber:#e0a44c; --amber-dim:#b9822f; --shadow-tone:#4a453a;
+  --paper:#151310; --paper2:#1d1911; --panel:#221d15;
+  --ink:#f2ecdd; --ink-dim:#c2b89e; --muted:#8f8571;
+  --line:#3a3222; --line2:#4c4230;
+  --amber:#e8ad57; --amber-dim:#c88b3a; --shadow-tone:#6b6355;
+  --title-ink:#17140f;
   --maxw:1180px; --heromaxw:1040px; --r:3px;
   --font-display:'Unbounded',sans-serif;
   --font-body:'Instrument Sans',sans-serif;
@@ -31,9 +34,9 @@
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{
   background-color:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:16.5px;line-height:1.65;
-  background-image:radial-gradient(rgba(23,20,15,.045) .5px,transparent .6px);background-size:3px 3px;
+  background-image:radial-gradient(rgba(242,236,221,.035) .5px,transparent .6px);background-size:3px 3px;
 }
-::selection{background:var(--amber);color:var(--ink)}
+::selection{background:var(--amber);color:var(--title-ink)}
 a{color:inherit}
 img,svg{display:block;max-width:100%}
 
@@ -43,7 +46,7 @@ img,svg{display:block;max-width:100%}
   padding:16px 22px;background:color-mix(in srgb,var(--paper) 88%,transparent);
   backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
 }
-.brand{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--amber-dim);font-weight:700;text-transform:uppercase}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--amber);font-weight:700;text-transform:uppercase}
 .topbar .spacer{flex:1}
 .tbtn{
   background:var(--panel);border:1px solid var(--line2);color:var(--ink);
@@ -56,7 +59,7 @@ img,svg{display:block;max-width:100%}
 .hero-inner{max-width:var(--heromaxw);margin:0 auto}
 section{padding:56px 0}
 h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25px);letter-spacing:-.01em;margin-bottom:8px}
-.eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:10px;display:block}
+.eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;display:block}
 .lede{color:var(--ink-dim);font-size:15px;max-width:52ch;margin-bottom:28px}
 
 /* ============ HERO — encuadre de título de apertura ============ */
@@ -74,19 +77,23 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 .reel::after{right:0;border-left:1px solid var(--line2)}
 
 .light-leak{position:absolute;top:-15%;right:-8%;width:55%;height:65%;z-index:0;pointer-events:none;
-  background:radial-gradient(circle,rgba(224,164,76,.4),transparent 68%);opacity:.6;filter:blur(2px)}
-.scratch{position:absolute;top:0;bottom:0;width:1px;background:rgba(23,20,15,.11);z-index:5;pointer-events:none}
-.grain{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:.07;mix-blend-mode:multiply;
+  background:radial-gradient(circle,rgba(232,173,87,.35),transparent 68%);opacity:.7;filter:blur(2px)}
+.scratch{position:absolute;top:0;bottom:0;width:1px;background:rgba(242,236,221,.07);z-index:5;pointer-events:none}
+.grain{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:.09;mix-blend-mode:screen;
   background-image:radial-gradient(var(--ink) .5px,transparent .6px);background-size:3px 3px}
 .vignette{position:absolute;inset:0;z-index:5;pointer-events:none;
-  background:radial-gradient(ellipse at 50% 40%,transparent 45%,rgba(23,20,15,.14) 100%)}
+  background:radial-gradient(ellipse at 50% 40%,transparent 40%,rgba(0,0,0,.4) 100%)}
+
+/* Franjas extra del mismo ámbar, a la derecha de la cuña principal —
+   la sala no se queda con un solo bloque de color plano. */
+.stripe{position:absolute;top:-6%;bottom:-6%;background:var(--amber);z-index:-1;pointer-events:none;transform:skewX(-13deg)}
 
 .frame-counter{
   display:flex;justify-content:space-between;align-items:center;padding:11px 4px;
   font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;color:var(--muted);
   border-bottom:1px dashed var(--line);position:relative;z-index:1;
 }
-.frame-counter b{color:var(--amber-dim);font-weight:700}
+.frame-counter b{color:var(--amber);font-weight:700}
 
 .hero-body{position:relative;padding:52px 6px 36px;overflow:hidden;isolation:isolate}
 .wedge{
@@ -94,19 +101,17 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
   background:linear-gradient(78deg,var(--amber) 0%,var(--amber) 40%,transparent 40.4%);
   animation:wipe .9s cubic-bezier(.65,0,.2,1) both;
 }
-.wedge::after{content:'';position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1.3px);background-size:7px 7px;opacity:.14;mix-blend-mode:overlay}
+.wedge::after{content:'';position:absolute;inset:0;background-image:radial-gradient(#000 1px,transparent 1.3px);background-size:7px 7px;opacity:.1;mix-blend-mode:overlay}
 @keyframes wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 @media(prefers-reduced-motion:reduce){.wedge{animation:none}}
 
-/* Iris de lente: anillos concéntricos, un solo div con radial repetido —
-   le da profundidad a la cuña plana sin agregar otro color. */
 .iris{
   position:absolute;top:52%;left:2%;transform:translateY(-50%);width:300px;height:300px;z-index:0;
   border-radius:50%;pointer-events:none;
-  background:repeating-radial-gradient(circle at center,transparent 0 22px,rgba(23,20,15,.1) 22px 23px);
+  background:repeating-radial-gradient(circle at center,transparent 0 22px,rgba(23,20,15,.12) 22px 23px);
 }
 @media(max-width:700px){.iris{width:220px;height:220px;left:-30px}}
-.regmark{position:absolute;width:18px;height:18px;z-index:2;opacity:.5;pointer-events:none}
+.regmark{position:absolute;width:18px;height:18px;z-index:2;opacity:.55;pointer-events:none}
 .regmark::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--ink);transform:translateY(-.5px)}
 .regmark::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink);transform:translateX(-.5px)}
 .regmark.tr{top:14px;right:14px}
@@ -114,30 +119,39 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 
 .spec-stack{
   position:absolute;top:20px;right:26px;z-index:2;text-align:right;
-  font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;line-height:2;color:rgba(23,20,15,.55);
+  font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;line-height:2;color:rgba(242,236,221,.4);
 }
 
-.kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:#fff;text-transform:uppercase;position:relative;z-index:2}
+.kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--title-ink);text-transform:uppercase;position:relative;z-index:2}
 
 .ca-title{position:relative;margin-top:14px;z-index:2}
 .ca-title h1{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:clamp(38px,9.5vw,72px);line-height:.9;letter-spacing:-.015em}
-.ca-title .ghost{position:absolute;top:0;left:0;pointer-events:none;mix-blend-mode:multiply}
+.ca-title .ghost{position:absolute;top:0;left:0;pointer-events:none;mix-blend-mode:screen}
 .ca-title .ghost-a{color:var(--amber);transform:translate(4px,1px)}
 .ca-title .ghost-b{color:var(--shadow-tone);transform:translate(-3px,-1px)}
-.ca-title .main{position:relative;color:var(--ink)}
+.ca-title .main{position:relative;color:var(--title-ink)}
 .ca-title .line2{display:block}
-.ca-title .main .line2{color:transparent;-webkit-text-stroke:2px var(--ink)}
+.ca-title .main .line2{color:transparent;-webkit-text-stroke:2px var(--title-ink)}
 .ca-title .ghost .line2{-webkit-text-stroke:2px currentColor;color:transparent}
 
-.hero .desc{font-family:var(--font-body);font-size:16.5px;line-height:1.6;color:var(--ink);max-width:38ch;margin-top:26px;position:relative;z-index:2}
+/* El párrafo y los botones pueden caer sobre la cuña ámbar o sobre el
+   fondo oscuro según el ancho de pantalla — la cuña no escala igual
+   que el texto. En vez de perseguir ese límite, les damos su propio
+   fondo (un "zócalo" tipo subtítulo de cine), así siempre son legibles
+   sin importar qué haya detrás. */
+.hero-copy{
+  position:relative;z-index:2;margin-top:24px;display:inline-block;
+  background:rgba(10,9,7,.58);padding:16px 20px;max-width:40ch;
+}
+.hero .desc{font-family:var(--font-body);font-size:16.5px;line-height:1.6;color:var(--ink)}
 .hero .desc b{font-weight:700}
-.hero-cta{display:flex;gap:14px;margin-top:28px;position:relative;z-index:2;flex-wrap:wrap}
+.hero-cta{display:flex;gap:14px;margin-top:18px;flex-wrap:wrap}
 .btn-ticket{
-  display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper2);
+  display:inline-flex;align-items:center;gap:10px;background:var(--amber);color:var(--title-ink);
   font-family:var(--font-body);font-weight:700;font-size:13.5px;padding:14px 22px;position:relative;
   border:none;cursor:pointer;text-decoration:none;
 }
-.btn-ticket::before,.btn-ticket::after{content:'';position:absolute;top:50%;width:12px;height:12px;background:var(--paper2);border-radius:50%;transform:translateY(-50%)}
+.btn-ticket::before,.btn-ticket::after{content:'';position:absolute;top:50%;width:12px;height:12px;background:rgba(10,9,7,.58);border-radius:50%;transform:translateY(-50%)}
 .btn-ticket::before{left:-6px}.btn-ticket::after{right:-6px}
 .btn-stub{
   display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--ink);
@@ -145,7 +159,7 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
   cursor:pointer;text-decoration:none;
 }
 
-.ticker{background:var(--ink);color:var(--paper);overflow:hidden;position:relative;z-index:1;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.ticker{background:var(--title-ink);color:var(--ink);overflow:hidden;position:relative;z-index:1;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
 .ticker-track{display:flex;width:max-content;animation:scroll 18s linear infinite}
 .ticker-track span{display:inline-flex;align-items:center;gap:10px;padding:9px 26px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
 .ticker-track span b{color:var(--amber)}
@@ -156,21 +170,25 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 .cans{padding:40px 8px 40px;display:flex;gap:24px;align-items:flex-end;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
 .cans::before{
   content:'';position:absolute;left:8%;right:8%;top:50%;height:1px;z-index:0;transform:translateY(-40px);
-  background-image:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 15px);opacity:.22;
+  background-image:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 15px);opacity:.18;
 }
 .can{display:flex;flex-direction:column;align-items:center;gap:9px;text-decoration:none;color:inherit;position:relative;z-index:1}
 .can .lid{width:96px;height:96px;border-radius:50%;border:5px solid var(--ink);position:relative;display:flex;align-items:center;justify-content:center;background:var(--paper2)}
-.can.on .lid{background:var(--amber);border-color:var(--ink)}
+.can.on .lid{background:var(--amber);border-color:var(--title-ink)}
 .can .lid .hub{
   width:24px;height:24px;border-radius:50%;background:var(--ink);
   box-shadow:0 -33px 0 -9px var(--ink),0 33px 0 -9px var(--ink),33px 0 0 -9px var(--ink),-33px 0 0 -9px var(--ink);
+}
+.can.on .lid .hub{
+  background:var(--title-ink);
+  box-shadow:0 -33px 0 -9px var(--title-ink),0 33px 0 -9px var(--title-ink),33px 0 0 -9px var(--title-ink),-33px 0 0 -9px var(--title-ink);
 }
 .can .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;text-align:center;color:var(--ink-dim);max-width:118px;line-height:1.5}
 .can .tag b{display:block;font-family:var(--font-display);font-weight:700;font-size:12.5px;text-transform:uppercase;color:var(--ink);margin-bottom:2px}
 .can.rot1{transform:rotate(-6deg)}
 .can.rot2{transform:rotate(3deg) translateY(12px)}
 .can.rot3{transform:rotate(-2deg) translateY(18px)}
-.can.off{opacity:.5}
+.can.off{opacity:.55}
 
 .end-credit{padding:15px 22px;border-top:1px dashed var(--line);font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;color:var(--muted);display:flex;justify-content:space-between;position:relative;z-index:1}
 
@@ -181,19 +199,19 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 .benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px;margin-top:8px}
 .benefit{display:flex;gap:13px;align-items:flex-start}
 .benefit .ico{
-  flex:0 0 auto;width:34px;height:34px;border-radius:var(--r);background:color-mix(in srgb, var(--amber) 18%, transparent);
-  display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--amber-dim);
+  flex:0 0 auto;width:34px;height:34px;border-radius:var(--r);background:color-mix(in srgb, var(--amber) 16%, transparent);
+  display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--amber);
 }
 .benefit h4{font-family:var(--font-body);font-weight:700;font-size:14.5px;margin-bottom:3px}
 .benefit p{font-size:13.5px;color:var(--ink-dim);line-height:1.5}
-.new-tag{font-family:var(--font-mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;background:var(--amber);color:var(--ink);padding:1px 6px;border-radius:20px;margin-left:6px;vertical-align:middle;font-weight:700}
+.new-tag{font-family:var(--font-mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;background:var(--amber);color:var(--title-ink);padding:1px 6px;border-radius:20px;margin-left:6px;vertical-align:middle;font-weight:700}
 
 .chat-mock{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:14px;margin-top:30px;font-family:var(--font-body);font-size:13px}
-.chat-mock .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:9px}
+.chat-mock .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:9px}
 .chat-mock .q,.chat-mock .a{padding:9px 12px;border-radius:var(--r);line-height:1.5}
 .chat-mock .q{background:var(--paper2);color:var(--ink-dim);margin-left:22px;margin-bottom:8px}
-.chat-mock .a{background:color-mix(in srgb, var(--amber) 14%, transparent)}
-.chat-mock .a b{color:var(--amber-dim)}
+.chat-mock .a{background:color-mix(in srgb, var(--amber) 12%, transparent)}
+.chat-mock .a b{color:var(--amber)}
 
 .cuenta-cta{margin-top:32px;text-align:center}
 
@@ -223,6 +241,11 @@ footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter
 <section class="hero">
   <div class="reel">
     <div class="light-leak"></div>
+    <span class="stripe" style="left:44%;width:20px;opacity:.4"></span>
+    <span class="stripe" style="left:52%;width:9px;opacity:.22"></span>
+    <span class="stripe" style="left:59%;width:30px;opacity:.13"></span>
+    <span class="stripe" style="left:70%;width:7px;opacity:.28"></span>
+    <span class="stripe" style="left:80%;width:14px;opacity:.16"></span>
     <span class="scratch" style="left:12%;opacity:.5"></span>
     <span class="scratch" style="left:38%;opacity:.3"></span>
     <span class="scratch" style="left:64%;opacity:.4"></span>
@@ -245,10 +268,12 @@ footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter
           <h1 class="ghost ghost-b" aria-hidden="true">Manual<span class="line2">de Cine</span></h1>
           <h1 class="main">Manual<span class="line2">de Cine</span></h1>
         </div>
-        <p class="desc">Manuales de oficio escritos de punta a punta por <b>Lautaro Forestale</b>, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
-        <div class="hero-cta">
-          <a class="btn-ticket" id="mainCta" href="index.html">Entrar al manual</a>
-          <a class="btn-stub" id="heroLogin" href="index.html?login=1&amp;tab=up">Crear cuenta →</a>
+        <div class="hero-copy">
+          <p class="desc">Manuales de oficio escritos de punta a punta por <b>Lautaro Forestale</b>, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
+          <div class="hero-cta">
+            <a class="btn-ticket" id="mainCta" href="index.html">Entrar al manual</a>
+            <a class="btn-stub" id="heroLogin" href="index.html?login=1&amp;tab=up">Crear cuenta →</a>
+          </div>
         </div>
       </div>
     </div>
