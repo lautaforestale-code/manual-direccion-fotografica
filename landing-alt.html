@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f2ede1">
+<meta name="author" content="Lautaro Forestale">
+<meta name="robots" content="noindex">
+<meta name="description" content="Manuales de cine escritos de punta a punta por Lautaro Forestale, desde la experiencia real de set. Arranca Dirección de Fotografía — Dirección y Guión, en camino.">
+<title>Manual de Cine — Lautaro Forestale (alternativa visual)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e0a44c'/%3E%3Ctext x='50' y='68' font-size='62' text-anchor='middle' fill='%2317140f'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============ ALTERNATIVA — "Títulos de apertura" ============
+   Página aparte, no reemplaza a landing.html. Un solo acento (ámbar,
+   más claro que el resto del sitio) contra tinta neutra sobre papel
+   de film stock envejecido — nada de dos colores enfrentados. */
+:root{
+  --paper:#f2ede1; --paper2:#faf7ef; --panel:#e9e2ce;
+  --ink:#17140f; --ink-dim:#6b6255; --muted:#8a7f66;
+  --line:#d9d0b8; --line2:#c7bb9c;
+  --amber:#e0a44c; --amber-dim:#b9822f; --shadow-tone:#4a453a;
+  --maxw:1180px; --heromaxw:1040px; --r:3px;
+  --font-display:'Unbounded',sans-serif;
+  --font-body:'Instrument Sans',sans-serif;
+  --font-mono:'Space Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:16.5px;line-height:1.65}
+::selection{background:var(--amber);color:var(--ink)}
+a{color:inherit}
+img,svg{display:block;max-width:100%}
+
+/* ---- Topbar ---- */
+.topbar{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+  padding:16px 22px;background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--amber-dim);font-weight:700;text-transform:uppercase}
+.topbar .spacer{flex:1}
+.tbtn{
+  background:var(--panel);border:1px solid var(--line2);color:var(--ink);
+  padding:9px 15px;border-radius:var(--r);font-family:var(--font-body);font-weight:600;font-size:13px;cursor:pointer;
+  text-decoration:none;white-space:nowrap;
+}
+
+/* ---- Layout ---- */
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.hero-inner{max-width:var(--heromaxw);margin:0 auto}
+section{padding:56px 0}
+h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25px);letter-spacing:-.01em;margin-bottom:8px}
+.eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:10px;display:block}
+.lede{color:var(--ink-dim);font-size:15px;max-width:52ch;margin-bottom:28px}
+
+/* ============ HERO — encuadre de título de apertura ============ */
+.hero{padding:0}
+.reel{
+  width:100%;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);
+  background:var(--paper2);position:relative;overflow:hidden;padding:0 26px;
+}
+.reel::before,.reel::after{
+  content:'';position:absolute;top:0;bottom:0;width:22px;z-index:6;
+  background-image:repeating-linear-gradient(var(--ink) 0 12px, transparent 12px 26px);
+  background-position:center;background-size:6px 26px;background-repeat:repeat-y;background-color:var(--panel);
+}
+.reel::before{left:0;border-right:1px solid var(--line2)}
+.reel::after{right:0;border-left:1px solid var(--line2)}
+
+.light-leak{position:absolute;top:-15%;right:-8%;width:55%;height:65%;z-index:0;pointer-events:none;
+  background:radial-gradient(circle,rgba(224,164,76,.4),transparent 68%);opacity:.6;filter:blur(2px)}
+.scratch{position:absolute;top:0;bottom:0;width:1px;background:rgba(23,20,15,.11);z-index:5;pointer-events:none}
+.grain{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:.07;mix-blend-mode:multiply;
+  background-image:radial-gradient(var(--ink) .5px,transparent .6px);background-size:3px 3px}
+.vignette{position:absolute;inset:0;z-index:5;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 40%,transparent 45%,rgba(23,20,15,.14) 100%)}
+
+.frame-counter{
+  display:flex;justify-content:space-between;align-items:center;padding:11px 4px;
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;color:var(--muted);
+  border-bottom:1px dashed var(--line);position:relative;z-index:1;
+}
+.frame-counter b{color:var(--amber-dim);font-weight:700}
+
+.hero-body{position:relative;padding:52px 6px 36px;overflow:hidden;isolation:isolate}
+.wedge{
+  position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(78deg,var(--amber) 0%,var(--amber) 40%,transparent 40.4%);
+  animation:wipe .9s cubic-bezier(.65,0,.2,1) both;
+}
+.wedge::after{content:'';position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1.3px);background-size:7px 7px;opacity:.14;mix-blend-mode:overlay}
+@keyframes wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@media(prefers-reduced-motion:reduce){.wedge{animation:none}}
+
+.kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:#fff;text-transform:uppercase;position:relative;z-index:2}
+
+.ca-title{position:relative;margin-top:14px;z-index:2}
+.ca-title h1{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:clamp(38px,9.5vw,72px);line-height:.9;letter-spacing:-.015em}
+.ca-title .ghost{position:absolute;top:0;left:0;pointer-events:none;mix-blend-mode:multiply}
+.ca-title .ghost-a{color:var(--amber);transform:translate(4px,1px)}
+.ca-title .ghost-b{color:var(--shadow-tone);transform:translate(-3px,-1px)}
+.ca-title .main{position:relative;color:var(--ink)}
+.ca-title .line2{display:block}
+.ca-title .main .line2{color:transparent;-webkit-text-stroke:2px var(--ink)}
+.ca-title .ghost .line2{-webkit-text-stroke:2px currentColor;color:transparent}
+
+.hero .desc{font-family:var(--font-body);font-size:16.5px;line-height:1.6;color:var(--ink);max-width:38ch;margin-top:26px;position:relative;z-index:2}
+.hero .desc b{font-weight:700}
+.hero-cta{display:flex;gap:14px;margin-top:28px;position:relative;z-index:2;flex-wrap:wrap}
+.btn-ticket{
+  display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper2);
+  font-family:var(--font-body);font-weight:700;font-size:13.5px;padding:14px 22px;position:relative;
+  border:none;cursor:pointer;text-decoration:none;
+}
+.btn-ticket::before,.btn-ticket::after{content:'';position:absolute;top:50%;width:12px;height:12px;background:var(--paper2);border-radius:50%;transform:translateY(-50%)}
+.btn-ticket::before{left:-6px}.btn-ticket::after{right:-6px}
+.btn-stub{
+  display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--ink);
+  font-family:var(--font-body);font-weight:600;font-size:13.5px;padding:14px 18px;border:2px solid var(--ink);
+  cursor:pointer;text-decoration:none;
+}
+
+.ticker{background:var(--ink);color:var(--paper);overflow:hidden;position:relative;z-index:1;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.ticker-track{display:flex;width:max-content;animation:scroll 18s linear infinite}
+.ticker-track span{display:inline-flex;align-items:center;gap:10px;padding:9px 26px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.ticker-track span b{color:var(--amber)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.ticker-track{animation:none}.ticker-track .dup{display:none}}
+
+/* ---- Latas de película: el englobe ---- */
+.cans{padding:34px 8px 40px;display:flex;gap:24px;align-items:flex-end;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.can{display:flex;flex-direction:column;align-items:center;gap:9px;text-decoration:none;color:inherit}
+.can .lid{width:96px;height:96px;border-radius:50%;border:5px solid var(--ink);position:relative;display:flex;align-items:center;justify-content:center;background:var(--paper2)}
+.can.on .lid{background:var(--amber);border-color:var(--ink)}
+.can .lid .hub{width:24px;height:24px;border-radius:50%;background:var(--ink)}
+.can .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;text-align:center;color:var(--ink-dim);max-width:118px;line-height:1.5}
+.can .tag b{display:block;font-family:var(--font-display);font-weight:700;font-size:12.5px;text-transform:uppercase;color:var(--ink);margin-bottom:2px}
+.can.rot1{transform:rotate(-6deg)}
+.can.rot2{transform:rotate(3deg) translateY(12px)}
+.can.rot3{transform:rotate(-2deg) translateY(18px)}
+.can.off{opacity:.5}
+
+.end-credit{padding:15px 22px;border-top:1px dashed var(--line);font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;color:var(--muted);display:flex;justify-content:space-between;position:relative;z-index:1}
+
+.byline{font-family:var(--font-mono);font-size:12px;color:var(--muted);letter-spacing:.03em;margin-top:22px;padding:0 28px;text-align:center}
+.byline b{color:var(--ink);font-weight:700;border-bottom:1px solid var(--amber-dim)}
+
+/* ============ Cuenta / beneficios ============ */
+.benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px;margin-top:8px}
+.benefit{display:flex;gap:13px;align-items:flex-start}
+.benefit .ico{
+  flex:0 0 auto;width:34px;height:34px;border-radius:var(--r);background:color-mix(in srgb, var(--amber) 18%, transparent);
+  display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--amber-dim);
+}
+.benefit h4{font-family:var(--font-body);font-weight:700;font-size:14.5px;margin-bottom:3px}
+.benefit p{font-size:13.5px;color:var(--ink-dim);line-height:1.5}
+.new-tag{font-family:var(--font-mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;background:var(--amber);color:var(--ink);padding:1px 6px;border-radius:20px;margin-left:6px;vertical-align:middle;font-weight:700}
+
+.chat-mock{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:14px;margin-top:30px;font-family:var(--font-body);font-size:13px}
+.chat-mock .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:9px}
+.chat-mock .q,.chat-mock .a{padding:9px 12px;border-radius:var(--r);line-height:1.5}
+.chat-mock .q{background:var(--paper2);color:var(--ink-dim);margin-left:22px;margin-bottom:8px}
+.chat-mock .a{background:color-mix(in srgb, var(--amber) 14%, transparent)}
+.chat-mock .a b{color:var(--amber-dim)}
+
+.cuenta-cta{margin-top:32px;text-align:center}
+
+footer{border-top:1px solid var(--line);padding:26px 0;text-align:center}
+footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter-spacing:.03em}
+
+@media(max-width:560px){
+  body{font-size:15.5px}
+  section{padding:36px 0}
+  .hero{padding-top:20px}
+  .hero-body{padding:38px 4px 28px}
+  .btn-ticket,.btn-stub{padding:12px 18px;font-size:13px}
+  .benefits{gap:16px}
+  .cans{gap:16px}
+  .can .lid{width:78px;height:78px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">◈ Manual de Cine</span>
+  <div class="spacer"></div>
+  <a class="tbtn" id="loginBtn" href="index.html?login=1">Iniciar sesión</a>
+</div>
+
+<section class="hero">
+  <div class="reel">
+    <div class="light-leak"></div>
+    <span class="scratch" style="left:12%;opacity:.5"></span>
+    <span class="scratch" style="left:38%;opacity:.3"></span>
+    <span class="scratch" style="left:64%;opacity:.4"></span>
+    <span class="scratch" style="left:89%;opacity:.3"></span>
+    <div class="grain"></div>
+    <div class="vignette"></div>
+
+    <div class="hero-inner">
+      <div class="frame-counter"><span>16MM · WORK PRINT</span><span>FRAME <b>0147</b></span></div>
+
+      <div class="hero-body">
+        <div class="wedge"></div>
+        <span class="kicker">◆ Se abre en negro —</span>
+        <div class="ca-title">
+          <h1 class="ghost ghost-a" aria-hidden="true">Manual<span class="line2">de Cine</span></h1>
+          <h1 class="ghost ghost-b" aria-hidden="true">Manual<span class="line2">de Cine</span></h1>
+          <h1 class="main">Manual<span class="line2">de Cine</span></h1>
+        </div>
+        <p class="desc">Manuales de oficio escritos de punta a punta por <b>Lautaro Forestale</b>, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
+        <div class="hero-cta">
+          <a class="btn-ticket" id="mainCta" href="index.html">Entrar al manual</a>
+          <a class="btn-stub" id="heroLogin" href="index.html?login=1&amp;tab=up">Crear cuenta →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="ticker">
+      <div class="ticker-track">
+        <span>◆ FOTOGRAFÍA — <b>DISPONIBLE</b>&nbsp;&nbsp;&nbsp;◆ DIRECCIÓN — EN MONTAJE&nbsp;&nbsp;&nbsp;◆ GUIÓN — EN MONTAJE&nbsp;&nbsp;&nbsp;</span>
+        <span class="dup">◆ FOTOGRAFÍA — <b>DISPONIBLE</b>&nbsp;&nbsp;&nbsp;◆ DIRECCIÓN — EN MONTAJE&nbsp;&nbsp;&nbsp;◆ GUIÓN — EN MONTAJE&nbsp;&nbsp;&nbsp;</span>
+      </div>
+    </div>
+
+    <div class="hero-inner">
+      <div class="cans">
+        <a class="can on rot1" href="index.html"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Fotografía</b>52 capítulos · en pantalla</div></a>
+        <span class="can off rot2"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Dirección</b>en montaje</div></span>
+        <span class="can off rot3"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Guión</b>en montaje</div></span>
+      </div>
+      <div class="end-credit"><span>UNA PRODUCCIÓN DE LAUTARO FORESTALE</span><span>© 2026</span></div>
+    </div>
+  </div>
+  <p class="byline">Escrito y dirigido por <b>Lautaro Forestale</b></p>
+</section>
+
+<section id="cuenta">
+  <div class="wrap">
+    <span class="eyebrow">Opcional, no hace falta para leer</span>
+    <h2>Por qué crear una cuenta</h2>
+    <p class="lede">Todo el manual y LauChat AI funcionan igual sin loguearte. Con cuenta, además:</p>
+    <div class="benefits">
+      <div class="benefit"><div class="ico">▶</div><div><h4>Seguís donde quedaste</h4><p>Guardamos tu progreso y te llevamos directo al último capítulo la próxima vez que entrás.</p></div></div>
+      <div class="benefit"><div class="ico">🔥</div><div><h4>Racha de lectura</h4><p>Sumá días seguidos leyendo. La racha se corta si te salteás un día entero.</p></div></div>
+      <div class="benefit"><div class="ico">🎬</div><div><h4>Tus créditos</h4><p>Desbloqueás roles del equipo de rodaje a medida que avanzás — de CONTINUISTA a DIRECTOR DE FOTOGRAFÍA.</p></div></div>
+      <div class="benefit"><div class="ico">✎</div><div><h4>Notas propias</h4><p>Marcá un fragmento de texto y dejá tu nota ahí anclada. Exportables cuando quieras.</p></div></div>
+      <div class="benefit"><div class="ico">📜</div><div><h4>Certificado al completarlo</h4><p>Terminaste los 52 capítulos: descargá tu certificado, estilo claqueta de producción.</p></div></div>
+      <div class="benefit"><div class="ico">◈</div><div><h4>Charlas con LauChat guardadas</h4><p>Tu historial con LauChat AI te sigue en cualquier dispositivo.</p></div></div>
+    </div>
+    <div class="chat-mock">
+      <div class="lbl">◈ Ejemplo</div>
+      <div class="q">¿qué ND uso en exterior con una tungsteno de gran potencia?</div>
+      <div class="a"><b>LauChat:</b> combinás un CTB (factor 2) con un ND 0.9 (factor 8, tres pasos) — ver cap. 14, Filtros de conversión.</div>
+    </div>
+    <div class="cuenta-cta">
+      <a class="btn-ticket" href="index.html?login=1&amp;tab=up">Crear cuenta gratis →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Lautaro Forestale · Manual de Cine — versión alternativa, no enlazada desde el sitio</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+/* Misma lógica que landing.html: si ya hay sesión, cambia el botón de
+   login y el CTA principal pasa a "continuar donde quedaste". */
+(function(){
+  var SUPABASE_URL='https://hxsjxjsbyvxyoprjqvet.supabase.co';
+  var SUPABASE_ANON_KEY='sb_publishable_S4Unx60Dwha3XMnD9bLCKQ_cJtLICrq';
+  if(!window.supabase) return;
+  var sb=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{flowType:'pkce'}});
+  sb.auth.getSession().then(function(res){
+    var session=res && res.data && res.data.session;
+    if(!session) return;
+    var loginBtn=document.getElementById('loginBtn');
+    var heroLogin=document.getElementById('heroLogin');
+    if(loginBtn) loginBtn.textContent='👤 '+((session.user.email||'Mi cuenta').split('@')[0]);
+    if(heroLogin) heroLogin.style.display='none';
+    sb.from('reading_progress').select('chapter_id,read_at').eq('manual_area','fotografia')
+      .order('read_at',{ascending:false}).limit(1).then(function(r){
+        var row = r && r.data && r.data[0];
+        if(!row) return;
+        var cta=document.getElementById('mainCta');
+        if(cta){ cta.textContent='Continuar donde quedaste'; cta.href='index.html#'+row.chapter_id; }
+      }).catch(function(){});
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>
