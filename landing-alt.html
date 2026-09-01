@@ -115,11 +115,16 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 .regmark::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--ink);transform:translateY(-.5px)}
 .regmark::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink);transform:translateX(-.5px)}
 .regmark.tr{top:14px;right:14px}
-.regmark.br{bottom:14px;right:14px}
+.regmark.bl{bottom:14px;left:14px}
 
-.spec-stack{
-  position:absolute;top:20px;right:26px;z-index:2;text-align:right;
-  font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;line-height:2;color:rgba(242,236,221,.4);
+/* Antes el costado quedaba vacío a anchos grandes — ahora el título
+   y las latas del englobe comparten la misma fila, aprovechando el
+   ancho completo en vez de apilar todo en una sola columna angosta. */
+.hero-grid{position:relative;z-index:2;display:flex;gap:5%;align-items:center;flex-wrap:wrap}
+.hero-main{flex:1 1 400px;min-width:260px}
+.hero-side{flex:0 0 190px;display:flex;flex-direction:column;gap:6px;padding-top:4px}
+.side-label{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;line-height:1.8;color:var(--muted);margin-bottom:10px;
 }
 
 .kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--title-ink);text-transform:uppercase;position:relative;z-index:2}
@@ -166,28 +171,28 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 @keyframes scroll{to{transform:translateX(-50%)}}
 @media(prefers-reduced-motion:reduce){.ticker-track{animation:none}.ticker-track .dup{display:none}}
 
-/* ---- Latas de película: el englobe ---- */
-.cans{padding:40px 8px 40px;display:flex;gap:24px;align-items:flex-end;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+/* ---- Latas de película: el englobe, en columna junto al título ---- */
+.cans{display:flex;flex-direction:column;gap:20px;position:relative}
 .cans::before{
-  content:'';position:absolute;left:8%;right:8%;top:50%;height:1px;z-index:0;transform:translateY(-40px);
-  background-image:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 15px);opacity:.18;
+  content:'';position:absolute;left:34px;top:6px;bottom:6px;width:1px;z-index:0;
+  background-image:repeating-linear-gradient(180deg,var(--ink) 0 6px,transparent 6px 15px);opacity:.18;
 }
-.can{display:flex;flex-direction:column;align-items:center;gap:9px;text-decoration:none;color:inherit;position:relative;z-index:1}
-.can .lid{width:96px;height:96px;border-radius:50%;border:5px solid var(--ink);position:relative;display:flex;align-items:center;justify-content:center;background:var(--paper2)}
+.can{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;position:relative;z-index:1}
+.can .lid{width:70px;height:70px;flex:0 0 auto;border-radius:50%;border:4px solid var(--ink);position:relative;display:flex;align-items:center;justify-content:center;background:var(--paper2)}
 .can.on .lid{background:var(--amber);border-color:var(--title-ink)}
 .can .lid .hub{
-  width:24px;height:24px;border-radius:50%;background:var(--ink);
-  box-shadow:0 -33px 0 -9px var(--ink),0 33px 0 -9px var(--ink),33px 0 0 -9px var(--ink),-33px 0 0 -9px var(--ink);
+  width:18px;height:18px;border-radius:50%;background:var(--ink);
+  box-shadow:0 -24px 0 -6px var(--ink),0 24px 0 -6px var(--ink),24px 0 0 -6px var(--ink),-24px 0 0 -6px var(--ink);
 }
 .can.on .lid .hub{
   background:var(--title-ink);
-  box-shadow:0 -33px 0 -9px var(--title-ink),0 33px 0 -9px var(--title-ink),33px 0 0 -9px var(--title-ink),-33px 0 0 -9px var(--title-ink);
+  box-shadow:0 -24px 0 -6px var(--title-ink),0 24px 0 -6px var(--title-ink),24px 0 0 -6px var(--title-ink),-24px 0 0 -6px var(--title-ink);
 }
-.can .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;text-align:center;color:var(--ink-dim);max-width:118px;line-height:1.5}
+.can .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;text-align:left;color:var(--ink-dim);line-height:1.5}
 .can .tag b{display:block;font-family:var(--font-display);font-weight:700;font-size:12.5px;text-transform:uppercase;color:var(--ink);margin-bottom:2px}
-.can.rot1{transform:rotate(-6deg)}
-.can.rot2{transform:rotate(3deg) translateY(12px)}
-.can.rot3{transform:rotate(-2deg) translateY(18px)}
+.can.rot1{transform:rotate(-2deg)}
+.can.rot2{transform:rotate(1.5deg) translateX(6px)}
+.can.rot3{transform:rotate(-1deg) translateX(3px)}
 .can.off{opacity:.55}
 
 .end-credit{padding:15px 22px;border-top:1px dashed var(--line);font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;color:var(--muted);display:flex;justify-content:space-between;position:relative;z-index:1}
@@ -225,8 +230,7 @@ footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter
   .hero-body{padding:38px 4px 28px}
   .btn-ticket,.btn-stub{padding:12px 18px;font-size:13px}
   .benefits{gap:16px}
-  .cans{gap:16px}
-  .can .lid{width:78px;height:78px}
+  .hero-side{flex-basis:100%;margin-top:26px;padding-left:2px}
 }
 </style>
 </head>
@@ -260,19 +264,32 @@ footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter
         <div class="wedge"></div>
         <div class="iris"></div>
         <span class="regmark tr"></span>
-        <span class="regmark br"></span>
-        <div class="spec-stack">35MM<br>COLOR NEG.<br>2.39 : 1</div>
-        <span class="kicker">◆ Se abre en negro —</span>
-        <div class="ca-title">
-          <h1 class="ghost ghost-a" aria-hidden="true">Manual<span class="line2">de Cine</span></h1>
-          <h1 class="ghost ghost-b" aria-hidden="true">Manual<span class="line2">de Cine</span></h1>
-          <h1 class="main">Manual<span class="line2">de Cine</span></h1>
-        </div>
-        <div class="hero-copy">
-          <p class="desc">Manuales de oficio escritos de punta a punta por <b>Lautaro Forestale</b>, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
-          <div class="hero-cta">
-            <a class="btn-ticket" id="mainCta" href="index.html">Entrar al manual</a>
-            <a class="btn-stub" id="heroLogin" href="index.html?login=1&amp;tab=up">Crear cuenta →</a>
+        <span class="regmark bl"></span>
+
+        <div class="hero-grid">
+          <div class="hero-main">
+            <span class="kicker">◆ Se abre en negro —</span>
+            <div class="ca-title">
+              <h1 class="ghost ghost-a" aria-hidden="true">Manual<span class="line2">de Cine</span></h1>
+              <h1 class="ghost ghost-b" aria-hidden="true">Manual<span class="line2">de Cine</span></h1>
+              <h1 class="main">Manual<span class="line2">de Cine</span></h1>
+            </div>
+            <div class="hero-copy">
+              <p class="desc">Manuales de oficio escritos de punta a punta por <b>Lautaro Forestale</b>, con una mirada personal y en clave explicativa — desde la experiencia real de rodaje, no desde la teoría sola.</p>
+              <div class="hero-cta">
+                <a class="btn-ticket" id="mainCta" href="index.html">Entrar al manual</a>
+                <a class="btn-stub" id="heroLogin" href="index.html?login=1&amp;tab=up">Crear cuenta →</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-side">
+            <div class="side-label">35MM · COLOR NEG.<br>2.39 : 1</div>
+            <div class="cans">
+              <a class="can on rot1" href="index.html"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Fotografía</b>52 capítulos · en pantalla</div></a>
+              <span class="can off rot2"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Dirección</b>en montaje</div></span>
+              <span class="can off rot3"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Guión</b>en montaje</div></span>
+            </div>
           </div>
         </div>
       </div>
@@ -286,11 +303,6 @@ footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter
     </div>
 
     <div class="hero-inner">
-      <div class="cans">
-        <a class="can on rot1" href="index.html"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Fotografía</b>52 capítulos · en pantalla</div></a>
-        <span class="can off rot2"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Dirección</b>en montaje</div></span>
-        <span class="can off rot3"><div class="lid"><div class="hub"></div></div><div class="tag"><b>Guión</b>en montaje</div></span>
-      </div>
       <div class="end-credit"><span>UNA PRODUCCIÓN DE LAUTARO FORESTALE</span><span>© 2026</span></div>
     </div>
   </div>
