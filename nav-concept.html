@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Prueba de navegación — riel + comando</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#151310; --paper2:#1d1911; --panel:#221d15;
+  --ink:#f2ecdd; --ink-dim:#c2b89e; --muted:#8f8571;
+  --line:#3a3222; --line2:#4c4230;
+  --amber:#e8ad57; --amber-dim:#c88b3a; --shadow-tone:#6b6355;
+  --title-ink:#17140f;
+  --maxw:760px;
+  --font-display:'Unbounded',sans-serif;
+  --font-body:'Instrument Sans',sans-serif;
+  --font-mono:'Space Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+::selection{background:var(--amber);color:var(--title-ink)}
+a{color:inherit}
+
+/* ============ Riel lateral ============ */
+.rail{
+  position:fixed;top:0;left:0;bottom:0;width:52px;z-index:10;
+  background:var(--paper2);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;
+  padding:16px 0 14px;
+}
+.rail-top{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--muted);writing-mode:vertical-rl;text-orientation:mixed;margin-bottom:14px;white-space:nowrap}
+.rail-track{
+  flex:1;width:100%;display:flex;flex-direction:column;align-items:center;
+  overflow-y:auto;overflow-x:hidden;padding:2px 0;position:relative;
+  scrollbar-width:none;
+}
+.rail-track::-webkit-scrollbar{display:none}
+.rail-track::before{
+  content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:var(--line2);transform:translateX(-50%);z-index:0;
+}
+.rail-part{width:100%;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;padding:9px 0}
+.rail-part-label{
+  font-family:var(--font-mono);font-size:7.5px;letter-spacing:.06em;color:var(--muted);
+  writing-mode:vertical-rl;text-orientation:mixed;margin-bottom:8px;white-space:nowrap;
+  max-height:70px;overflow:hidden;text-overflow:ellipsis;opacity:.75;
+}
+.frame{
+  position:relative;width:100%;display:flex;justify-content:center;padding:3.5px 0;cursor:pointer;
+}
+.frame .dot{
+  width:5px;height:5px;background:var(--line2);border-radius:1px;transition:all .15s;
+}
+.frame:hover .dot{background:var(--ink-dim);width:7px;height:7px}
+.frame.read .dot{background:var(--amber-dim)}
+.frame.current .dot{background:var(--amber);width:9px;height:9px;box-shadow:0 0 0 3px rgba(232,173,87,.18)}
+.frame .tip{
+  position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:10px;
+  background:var(--title-ink);color:var(--ink);font-family:var(--font-mono);font-size:11px;
+  padding:6px 10px;white-space:nowrap;border:1px solid var(--line2);opacity:0;pointer-events:none;
+  transition:opacity .12s;z-index:20;
+}
+.frame .tip b{color:var(--amber);font-weight:700;margin-right:6px}
+.frame:hover .tip{opacity:1}
+.rail-jump{
+  margin-top:10px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line2);background:var(--panel);
+  color:var(--amber);font-family:var(--font-mono);font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,transform .15s;
+}
+.rail-jump:hover{border-color:var(--amber-dim);transform:scale(1.06)}
+.rail-hint{
+  margin-top:8px;font-family:var(--font-mono);font-size:8px;letter-spacing:.04em;color:var(--muted);
+  text-align:center;line-height:1.5;
+}
+.rail-hint kbd{border:1px solid var(--line2);border-radius:3px;padding:0 3px;font-family:var(--font-mono)}
+
+/* ============ Contenido ============ */
+.main{margin-left:52px;min-height:100vh}
+.topbar{
+  position:sticky;top:0;z-index:5;background:rgba(21,19,16,.88);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-crumbs{
+  display:flex;align-items:center;gap:8px;padding:14px 28px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;
+}
+.topbar-crumbs b{color:var(--amber-dim);font-weight:400}
+.topbar-crumbs .sep{opacity:.4}
+.progress{height:2px;background:var(--line);position:relative}
+.progress i{position:absolute;left:0;top:0;bottom:0;background:var(--amber);width:19%}
+
+.content{max-width:var(--maxw);margin:0 auto;padding:56px 24px 90px}
+.kicker{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;margin-bottom:14px}
+h1{font-family:var(--font-display);font-weight:800;font-size:clamp(28px,4vw,44px);line-height:1.06;letter-spacing:-.01em;text-wrap:balance;margin-bottom:22px}
+.lead{font-size:18px;color:var(--ink-dim);line-height:1.7;margin-bottom:34px;max-width:56ch}
+p{margin-bottom:18px;max-width:64ch;color:var(--ink)}
+p.dim{color:var(--ink-dim)}
+
+.next-take{
+  margin-top:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  background:var(--panel);border:1px solid var(--line2);padding:22px 26px;text-decoration:none;color:inherit;
+  transition:border-color .15s,transform .15s;
+}
+.next-take:hover{border-color:var(--amber-dim);transform:translateX(3px)}
+.next-take .nt-label{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.next-take .nt-title{font-family:var(--font-display);font-weight:700;font-size:19px}
+.next-take .nt-arrow{font-size:22px;color:var(--amber);flex-shrink:0}
+
+/* ============ Comando / orden del día ============ */
+.cmd-overlay{
+  position:fixed;inset:0;z-index:100;background:rgba(10,9,7,.72);
+  display:flex;align-items:flex-start;justify-content:center;padding:8vh 20px 20px;
+  opacity:0;pointer-events:none;transition:opacity .18s;
+}
+.cmd-overlay.open{opacity:1;pointer-events:auto}
+.cmd-panel{
+  width:100%;max-width:680px;max-height:78vh;background:var(--paper2);border:1px solid var(--line2);
+  display:flex;flex-direction:column;transform:translateY(-8px);transition:transform .18s;
+  box-shadow:0 40px 80px rgba(0,0,0,.5);
+}
+.cmd-overlay.open .cmd-panel{transform:translateY(0)}
+.cmd-head{
+  display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line);
+}
+.cmd-head .ico{font-family:var(--font-mono);color:var(--amber);font-size:14px}
+.cmd-head input{
+  flex:1;background:none;border:none;outline:none;color:var(--ink);
+  font-family:var(--font-mono);font-size:15px;letter-spacing:.02em;
+}
+.cmd-head input::placeholder{color:var(--muted)}
+.cmd-head .count{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.cmd-head .esc{
+  font-family:var(--font-mono);font-size:10px;color:var(--muted);border:1px solid var(--line2);
+  border-radius:3px;padding:2px 6px;cursor:pointer;
+}
+.cmd-title-row{
+  display:flex;justify-content:space-between;align-items:baseline;padding:14px 20px 6px;
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;
+}
+.cmd-list{overflow-y:auto;padding:4px 8px 14px}
+.cmd-group-label{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--amber-dim);
+  text-transform:uppercase;padding:14px 12px 6px;
+}
+.cmd-item{
+  display:flex;align-items:center;gap:12px;padding:9px 12px;cursor:pointer;border-radius:2px;
+}
+.cmd-item:hover,.cmd-item.active{background:rgba(232,173,87,.09)}
+.cmd-item .n{font-family:var(--font-mono);font-size:11px;color:var(--muted);width:22px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.cmd-item .t{flex:1;font-family:var(--font-body);font-size:14.5px;color:var(--ink)}
+.cmd-item.current .t{color:var(--amber);font-weight:600}
+.cmd-item .chk{font-family:var(--font-mono);font-size:12px;color:var(--amber-dim);flex-shrink:0}
+.cmd-item.current .here{font-family:var(--font-mono);font-size:9.5px;color:var(--amber);letter-spacing:.06em;flex-shrink:0}
+.cmd-empty{padding:40px 20px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+
+/* ============ nota de propuesta ============ */
+.pitch{
+  position:fixed;bottom:16px;right:16px;z-index:50;max-width:300px;
+  background:var(--panel);border:1px solid var(--line2);padding:14px 16px;
+  font-family:var(--font-mono);font-size:10.5px;line-height:1.6;color:var(--ink-dim);
+}
+.pitch b{color:var(--amber)}
+
+@media(max-width:640px){
+  .rail{width:38px}
+  .main{margin-left:38px}
+  .rail-part-label{display:none}
+  .content{padding:40px 16px 70px}
+  .pitch{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ RIEL LATERAL ============ -->
+<aside class="rail">
+  <div class="rail-top">◈ DF</div>
+  <div class="rail-track" id="railTrack"></div>
+  <button class="rail-jump" id="cmdOpenBtn" title="Buscar / saltar de capítulo" aria-label="Abrir buscador de capítulos">⌕</button>
+  <div class="rail-hint">Ctrl<br><kbd>K</kbd></div>
+</aside>
+
+<!-- ============ CONTENIDO ============ -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-crumbs">
+      <span>Manual de Fotografía</span><span class="sep">／</span><b>Parte II — La Cámara</b>
+    </div>
+    <div class="progress"><i></i></div>
+  </div>
+
+  <div class="content">
+    <div class="kicker">Capítulo 06 · Parte II — La Cámara</div>
+    <h1>Obturador, cadencia y tiempo</h1>
+    <p class="lead">Cómo el obturador construye el tiempo dentro del fotograma — de la rueda mecánica al sensor global, y por qué el ángulo de 180° sigue siendo el punto de partida de cualquier decisión.</p>
+
+    <p>Este es un capítulo de prueba para ver cómo se comporta la tipografía y el layout dentro del sistema de <i>títulos de apertura</i> ya aprobado — no es contenido real todavía. La idea de esta página es mostrar exclusivamente el reemplazo del sidebar clásico.</p>
+    <p class="dim">A la izquierda: un riel angosto de fotogramas, uno por capítulo, agrupado por parte — el punto ámbar grande marca dónde estás, los puntos atenuados son lo ya leído. Pasando el mouse por cada fotograma aparece el título. El círculo de abajo (o <kbd style="font-family:var(--font-mono);border:1px solid var(--line2);border-radius:3px;padding:0 4px">Ctrl K</kbd>) abre el buscador de capítulos a pantalla completa — «orden del día» — con los 52 capítulos reales agrupados por parte, filtrable por texto.</p>
+
+    <a class="next-take" href="#">
+      <div>
+        <div class="nt-label">Siguiente toma</div>
+        <div class="nt-title">07 · Soportes de captura</div>
+      </div>
+      <div class="nt-arrow">→</div>
+    </a>
+  </div>
+</div>
+
+<!-- ============ COMANDO / ORDEN DEL DÍA ============ -->
+<div class="cmd-overlay" id="cmdOverlay">
+  <div class="cmd-panel">
+    <div class="cmd-head">
+      <span class="ico">⌕</span>
+      <input type="text" id="cmdInput" placeholder="Buscar capítulo…" autocomplete="off">
+      <span class="count" id="cmdCount"></span>
+      <span class="esc" id="cmdClose">ESC</span>
+    </div>
+    <div class="cmd-title-row"><span>Orden del día</span><span id="cmdProgress">10 / 52 leídos</span></div>
+    <div class="cmd-list" id="cmdList"></div>
+  </div>
+</div>
+
+<div class="pitch"><b>Prueba de navegación</b> — así se vería el riel + el buscador «orden del día» reemplazando el sidebar clásico. El contenido de este capítulo es de relleno, solo para mostrar layout y tipografía.</div>
+
+<script>
+const STRUCT=[
+ {p:"Parte I — El Oficio",items:[
+   {id:"c1",n:"1",t:"Qué es un director de fotografía"},
+   {id:"c2",n:"2",t:"Historia técnica como dialéctica"},
+   {id:"c3",n:"3",t:"La imagen como construcción"},
+   {id:"c46",n:"4",t:"La mirada quieta"}]},
+ {p:"Parte II — La Cámara",items:[
+   {id:"c4",n:"5",t:"Anatomía de la cámara"},
+   {id:"c5",n:"6",t:"Obturador, cadencia y tiempo"},
+   {id:"c6",n:"7",t:"Soportes de captura"},
+   {id:"c7",n:"8",t:"Formatos y aspectos"},
+   {id:"c8",n:"9",t:"El sensor por dentro"},
+   {id:"c47",n:"10",t:"Movimiento de cámara"}]},
+ {p:"Parte III — La Óptica",items:[
+   {id:"c9",n:"11",t:"La lente delgada"},
+   {id:"c10",n:"12",t:"Focal, campo y perspectiva"},
+   {id:"c11",n:"13",t:"f-stop y T-stop"},
+   {id:"c12",n:"14",t:"PdC, CoC e hiperfocal"},
+   {id:"c13",n:"15",t:"Cobertura y viñeteo"},
+   {id:"c14",n:"16",t:"Aberraciones y firma"},
+   {id:"c15",n:"17",t:"Familias de lentes"},
+   {id:"c16",n:"18",t:"Monturas y adaptadores"}]},
+ {p:"Parte IV — La Exposición",items:[
+   {id:"c17",n:"19",t:"E = I × T y el triángulo"},
+   {id:"c18",n:"20",t:"Fotometría e instrumentos"},
+   {id:"c19",n:"21",t:"Sistema de zonas"},
+   {id:"c20",n:"22",t:"Curva y sensitometría"},
+   {id:"c21",n:"23",t:"Energía, Lambert, cuadrado inverso"},
+   {id:"c22",n:"24",t:"Herramientas digitales"},
+   {id:"c23",n:"25",t:"Ejercicios resueltos"}]},
+ {p:"Parte V — Luz y Color",items:[
+   {id:"c24",n:"26",t:"Física de la luz"},
+   {id:"c25",n:"27",t:"El ojo y la síntesis del color"},
+   {id:"c26",n:"28",t:"Temperatura, mired, CRI"},
+   {id:"c27",n:"29",t:"Filtros y gelatinas"}]},
+ {p:"Parte VI — La Iluminación",items:[
+   {id:"c28",n:"30",t:"Objetivos y jerarquía"},
+   {id:"c29",n:"31",t:"Calidad, dirección, ratios"},
+   {id:"c30",n:"32",t:"Fuentes e instrumentos"},
+   {id:"c31",n:"33",t:"Control de la luz"},
+   {id:"c32",n:"34",t:"Puesta práctica"},
+   {id:"c33",n:"35",t:"Exteriores y día por noche"},
+   {id:"c48",n:"36",t:"Documental vs. ficción"}]},
+ {p:"Parte VII — El Método",items:[
+   {id:"c34",n:"37",t:"Idea rectora"},
+   {id:"c35",n:"38",t:"Unidades de acción"},
+   {id:"c36",n:"39",t:"Marco y referencias"},
+   {id:"c37",n:"40",t:"Interpretación del guion"},
+   {id:"c49",n:"41",t:"Pruebas de cámara"},
+   {id:"c50",n:"42",t:"Otros departamentos"},
+   {id:"c38",n:"43",t:"Continuidad y etalonaje"}]},
+ {p:"Parte VIII — Industria",items:[
+   {id:"c39",n:"44",t:"Cámaras y sensores actuales"},
+   {id:"c40",n:"45",t:"Log, RAW y códecs"},
+   {id:"c41",n:"46",t:"Espacios de color y HDR"},
+   {id:"c42",n:"47",t:"Ópticas contemporáneas"},
+   {id:"c43",n:"48",t:"Iluminación LED/RGB"},
+   {id:"c51",n:"49",t:"Producción virtual"},
+   {id:"c44",n:"50",t:"DF contemporáneos"},
+   {id:"c52",n:"51",t:"Aspecto profesional"}]},
+ {p:"Parte IX — Voces",items:[{id:"c45",n:"52",t:"Ocho entrevistas"}]}
+];
+const FLAT=[];STRUCT.forEach(g=>g.items.forEach(i=>{i.part=g.p;FLAT.push(i)}));
+
+// datos de prueba: simulamos progreso de lectura
+const CURRENT_ID='c5';
+const READ=new Set(['c1','c2','c3','c46','c4']); // 5 leídos + el actual, para la prueba
+
+/* ---- riel lateral ---- */
+const railTrack=document.getElementById('railTrack');
+STRUCT.forEach(g=>{
+  const part=document.createElement('div');
+  part.className='rail-part';
+  const lbl=document.createElement('div');
+  lbl.className='rail-part-label';
+  lbl.textContent=g.p.replace(/^Parte /,'');
+  part.appendChild(lbl);
+  g.items.forEach(it=>{
+    const f=document.createElement('div');
+    f.className='frame'+(READ.has(it.id)?' read':'')+(it.id===CURRENT_ID?' current':'');
+    f.innerHTML=`<span class="dot"></span><span class="tip"><b>${it.n}</b>${it.t}</span>`;
+    part.appendChild(f);
+  });
+  railTrack.appendChild(part);
+});
+// centrar el capítulo actual en el riel al cargar
+requestAnimationFrame(()=>{
+  const cur=railTrack.querySelector('.frame.current');
+  if(cur) cur.scrollIntoView({block:'center'});
+});
+
+/* ---- comando / orden del día ---- */
+const overlay=document.getElementById('cmdOverlay');
+const input=document.getElementById('cmdInput');
+const list=document.getElementById('cmdList');
+const openBtn=document.getElementById('cmdOpenBtn');
+const closeBtn=document.getElementById('cmdClose');
+document.getElementById('cmdProgress').textContent=READ.size+' / '+FLAT.length+' leídos';
+
+function renderList(filter){
+  const q=(filter||'').trim().toLowerCase();
+  list.innerHTML='';
+  let shown=0;
+  STRUCT.forEach(g=>{
+    const items=g.items.filter(it=>!q||it.t.toLowerCase().includes(q)||it.n.includes(q));
+    if(!items.length)return;
+    shown+=items.length;
+    const gl=document.createElement('div');
+    gl.className='cmd-group-label';
+    gl.textContent=g.p;
+    list.appendChild(gl);
+    items.forEach(it=>{
+      const row=document.createElement('div');
+      row.className='cmd-item'+(it.id===CURRENT_ID?' current':'');
+      row.innerHTML=`<span class="n">${it.n}</span><span class="t">${it.t}</span>`+
+        (it.id===CURRENT_ID?'<span class="here">ACÁ</span>':READ.has(it.id)?'<span class="chk">✓</span>':'');
+      list.appendChild(row);
+    });
+  });
+  document.getElementById('cmdCount').textContent=shown+' resultados';
+  if(!shown){
+    const e=document.createElement('div');
+    e.className='cmd-empty';
+    e.textContent='Sin coincidencias.';
+    list.appendChild(e);
+  }
+}
+function openCmd(){
+  overlay.classList.add('open');
+  input.value='';
+  renderList('');
+  setTimeout(()=>input.focus(),10);
+}
+function closeCmd(){overlay.classList.remove('open')}
+openBtn.addEventListener('click',openCmd);
+closeBtn.addEventListener('click',closeCmd);
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeCmd()});
+input.addEventListener('input',()=>renderList(input.value));
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();overlay.classList.contains('open')?closeCmd():openCmd()}
+  if(e.key==='Escape'&&overlay.classList.contains('open'))closeCmd();
+});
+</script>
+</body>
+</html>
