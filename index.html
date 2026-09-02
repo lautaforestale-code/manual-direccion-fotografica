@@ -18,22 +18,29 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230b0a08'/%3E%3Ctext x='50' y='68' font-size='62' text-anchor='middle' fill='%23f5a623'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* ============ VARIABLES DE TEMA ============ */
+/* ============ VARIABLES DE TEMA ============
+   Reskin al sistema de "títulos de apertura" ya aprobado en landing-alt.html /
+   fotografia-alt.html: los NOMBRES de variable no cambian (siguen siendo --bg,
+   --panel, --ink, --amber, etc.) a propósito — así todo el CSS de abajo, que ya
+   estaba escrito 100% con var(), se realinea solo con solo tocar estos valores. */
 :root{
-  --bg:#0b0a08; --panel:#141210; --panel2:#1a1714; --panel3:#221e19;
-  --ink:#f0ead9; --ink-dim:#b7ad96; --muted:#847b66;
-  --line:#2e2a23; --line2:#3a352c;
-  --amber:#f5a623; --amber2:#e8952f; --amber-dim:#9c6d1c;
+  --bg:#151310; --panel:#1d1911; --panel2:#221d15; --panel3:#2a2318;
+  --ink:#f2ecdd; --ink-dim:#c2b89e; --muted:#8f8571;
+  --line:#3a3222; --line2:#4c4230;
+  --amber:#e8ad57; --amber2:#f2c37b; --amber-dim:#c88b3a;
   --cyan:#5fc6d9; --green:#8fc66b; --red:#e0654f; --violet:#b48fe0; --yellow:#e8d24a;
-  --chip-clase:#f5a623; --chip-recon:#e8952f; --chip-sint:#e8d24a;
+  --chip-clase:#e8ad57; --chip-recon:#f2c37b; --chip-sint:#e8d24a;
   --chip-fuente:#8fc66b; --chip-web:#5fc6d9; --chip-inf:#b48fe0;
   --chip-amb:#e0654f; --chip-error:#e0454f;
-  --maxw:760px; --r:14px;
+  --maxw:760px; --heromaxw:1400px; --r:5px;
   --shadow:0 18px 50px rgba(0,0,0,.55);
-  --font-ui:'Archivo',system-ui,sans-serif;
-  --font-body:'Source Serif 4',Georgia,serif;
+  /* Fijo, no se invierte con el tema: para texto/UI que siempre cae sobre la
+     cuña ámbar de la portada (ver nota igual en landing-alt.html). */
+  --title-ink:#17140f; --shadow-tone:#6b6355;
+  --font-ui:'Unbounded',sans-serif;
+  --font-body:'Instrument Sans',sans-serif;
   --font-mono:'Space Mono',ui-monospace,monospace;
 }
 [data-theme="luzdia"]{
@@ -77,82 +84,115 @@ img{max-width:100%}
 /* ============ LAYOUT ============ */
 .app{display:flex;min-height:100dvh}
 
-/* ============ SIDEBAR (tira de película) ============ */
-.sidebar{
-  position:fixed;inset:0 auto 0 0;width:300px;z-index:60;
-  background:#0a0908;color:#e7dfcc;overflow-y:auto;overscroll-behavior:contain;
-  transform:translateX(-100%);transition:transform .32s cubic-bezier(.22,.9,.3,1);
-  border-right:1px solid #000;
+/* ============ RIEL (reemplaza el sidebar-lista clásico) ============
+   Un fotograma por capítulo, agrupados por parte, siempre visible (no es un
+   drawer que se abre/cierra). Para saltar lejos hay un buscador a pantalla
+   completa ("orden del día", más abajo). Los nombres de clase (.nav-link,
+   .dot, .rd, .fav, #nav, #favFilterBtn) se mantienen igual que en el sidebar
+   viejo a propósito: todo el módulo de cuenta (progreso/favoritos, más abajo
+   en el JS) sincroniza tocando esos selectores y así sigue funcionando sin
+   cambiar una línea de esa parte. */
+.rail{
+  position:fixed;inset:0 auto 0 0;width:50px;z-index:60;
+  background:var(--panel2);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;
 }
-[data-theme="luzdia"] .sidebar{background:#211c12;color:#efe7d4}
-.sidebar.open{transform:none}
-.sidebar::before{ /* perforaciones */
-  content:"";position:sticky;top:0;left:0;width:100%;height:0;
+.rail-brand{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--amber);margin-bottom:12px}
+#nav{
+  flex:1;width:100%;display:flex;flex-direction:column;align-items:center;
+  overflow-y:auto;overflow-x:hidden;padding:2px 0;position:relative;scrollbar-width:none;
 }
-.perf{
-  position:fixed;top:0;bottom:0;left:0;width:16px;z-index:61;pointer-events:none;
-  background:repeating-linear-gradient(to bottom,transparent 0 12px,#000 12px 14px,transparent 14px 26px);
-  opacity:.7;
-}
-.sb-head{padding:22px 20px 14px 34px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sb-brand{font-family:var(--font-mono);font-size:12px;letter-spacing:.22em;color:var(--amber);font-weight:700}
-.sb-sub{font-size:12px;color:#9a9078;margin-top:6px;line-height:1.5}
-.sb-search{padding:14px 20px 6px 34px;display:flex;gap:6px}
-.sb-search input{
-  flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
-  color:#efe7d4;padding:9px 12px;border-radius:9px;font-family:var(--font-ui);font-size:13px;
-}
-.sb-search input:focus{outline:none;border-color:var(--amber)}
-.fav-filter{
-  flex:0 0 auto;width:36px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
-  color:var(--muted);border-radius:9px;font-size:14px;cursor:pointer;
-}
-.fav-filter.on{color:var(--amber);background:color-mix(in srgb, var(--amber) 16%, transparent);border-color:color-mix(in srgb, var(--amber) 40%, transparent)}
-.sb-nav{padding:8px 14px 90px 28px}
+#nav::-webkit-scrollbar{display:none}
+#nav::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line2);transform:translateX(-50%);z-index:0}
 .nav-part{
-  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--amber);margin:20px 0 6px;padding-bottom:5px;border-bottom:1px dashed rgba(255,255,255,.14);
+  width:100%;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;padding:8px 0;
+  font-family:var(--font-mono);font-size:7.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  writing-mode:vertical-rl;text-orientation:mixed;opacity:.75;
 }
+.nav-part::after{content:'';display:block;height:1px}
 .nav-link{
-  display:flex;gap:9px;align-items:baseline;padding:6px 10px;border-radius:8px;cursor:pointer;
-  color:#cfc5ac;font-size:13.5px;line-height:1.4;text-decoration:none;transition:background .15s,color .15s;
+  position:relative;width:100%;display:flex;justify-content:center;padding:3.5px 0;cursor:pointer;
+  color:inherit;text-decoration:none;writing-mode:horizontal-tb;
 }
-.nav-link:hover{background:rgba(255,255,255,.07);color:#fff}
-.nav-link.active{background:rgba(245,166,35,.16);color:#fff;box-shadow:inset 2px 0 0 var(--amber)}
-.nav-link .n{font-family:var(--font-mono);font-size:11px;color:#7a7160;flex:0 0 24px}
-.nav-link .dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px;margin-top:6px;background:#3f3a2f}
-.nav-link .dot.on{background:var(--amber)}
-.nav-link.pend{opacity:.55}
-/* Marca de "ya lo leíste", sincronizada con tu cuenta (sin cuenta no
-   aparece nunca, no hay nada que ocultar). */
-.nav-link .rd{margin-left:auto;flex:0 0 auto;color:var(--amber);font-size:10px;opacity:0;padding-left:4px}
-.nav-link.read .rd{opacity:1}
-.nav-link .fav{margin-left:2px;flex:0 0 auto;color:var(--muted);font-size:10px;opacity:0;padding-left:2px}
-.nav-link.fav .fav{opacity:1;color:var(--amber)}
+.nav-link .dot{width:5px;height:5px;background:var(--line2);border-radius:1px;transition:all .15s}
+.nav-link:hover .dot{background:var(--ink-dim);width:7px;height:7px}
+.nav-link.pend{opacity:.5}
+.nav-link.active .dot{background:var(--amber);width:9px;height:9px;box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 20%, transparent)}
+.nav-link .rd,.nav-link .fav{position:absolute;opacity:0;pointer-events:none}
+.nav-link .n{display:none}
+.nav-link .tip{
+  position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:9px;
+  background:var(--title-ink);color:var(--ink);font-family:var(--font-mono);font-size:11px;
+  padding:6px 10px;white-space:nowrap;border:1px solid var(--line2);opacity:0;pointer-events:none;
+  transition:opacity .12s;z-index:20;display:flex;align-items:center;gap:6px;
+}
+.nav-link .tip b{color:var(--amber);font-weight:700}
+.nav-link .tip .ok{color:var(--amber-dim)}
+.nav-link .tip .st{color:var(--amber)}
+.nav-link:hover .tip{opacity:1}
+.rail-jump{
+  margin-top:8px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line2);background:var(--panel);
+  color:var(--amber);font-family:var(--font-mono);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:border-color .15s,transform .15s;
+}
+.rail-jump:hover{border-color:var(--amber-dim);transform:scale(1.06)}
+.fav-filter{
+  margin-top:6px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line2);background:var(--panel);
+  color:var(--muted);font-size:13px;cursor:pointer;flex:0 0 auto;
+}
+.fav-filter.on{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb, var(--amber) 14%, transparent)}
+.rail-hint{margin-top:6px;font-family:var(--font-mono);font-size:7.5px;letter-spacing:.04em;color:var(--muted);text-align:center;line-height:1.5}
+.rail-hint kbd{border:1px solid var(--line2);border-radius:3px;padding:0 3px;font-family:var(--font-mono)}
+#nav.favs-only .nav-link:not(.fav){opacity:.12;pointer-events:none}
+#nav.favs-only .nav-part{opacity:.3}
 #fullIndex li.read a{color:var(--ink)}
 #fullIndex li .rd{color:var(--amber);font-size:12px;margin-left:6px}
 #fullIndex li .fav{color:var(--amber);font-size:12px;margin-left:4px}
-#nav.favs-only .nav-link:not(.fav){display:none}
-#nav.favs-only .nav-part{display:none}
+
+/* ============ COMANDO / "ORDEN DEL DÍA" (buscador a pantalla completa) ==== */
+.cmd-overlay{
+  position:fixed;inset:0;z-index:100;background:rgba(10,9,7,.72);
+  display:flex;align-items:flex-start;justify-content:center;padding:8vh 20px 20px;
+  opacity:0;pointer-events:none;transition:opacity .18s;
+}
+.cmd-overlay.open{opacity:1;pointer-events:auto}
+.cmd-panel{
+  width:100%;max-width:680px;max-height:78vh;background:var(--panel2);border:1px solid var(--line2);
+  display:flex;flex-direction:column;transform:translateY(-8px);transition:transform .18s;
+  box-shadow:0 40px 80px rgba(0,0,0,.5);
+}
+.cmd-overlay.open .cmd-panel{transform:translateY(0)}
+.cmd-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.cmd-head .ico{font-family:var(--font-mono);color:var(--amber);font-size:14px}
+.cmd-head input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-family:var(--font-mono);font-size:15px;letter-spacing:.02em}
+.cmd-head input::placeholder{color:var(--muted)}
+.cmd-head .count{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.cmd-head .esc{font-family:var(--font-mono);font-size:10px;color:var(--muted);border:1px solid var(--line2);border-radius:3px;padding:2px 6px;cursor:pointer}
+.cmd-title-row{display:flex;justify-content:space-between;align-items:baseline;padding:14px 20px 6px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.cmd-list{overflow-y:auto;padding:4px 8px 14px}
+.cmd-group-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--amber-dim);text-transform:uppercase;padding:14px 12px 6px}
+.cmd-item.nav-link{display:flex;align-items:center;gap:12px;padding:9px 12px;cursor:pointer;border-radius:2px;width:auto}
+.cmd-item.nav-link:hover,.cmd-item.nav-link.active{background:color-mix(in srgb, var(--amber) 9%, transparent)}
+.cmd-item .dot{display:none}
+.cmd-item .n{display:block;font-family:var(--font-mono);font-size:11px;color:var(--muted);width:22px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.cmd-item .t{flex:1;font-family:var(--font-body);font-size:14.5px;color:var(--ink)}
+.cmd-item.active .t{color:var(--amber);font-weight:600}
+.cmd-item .rd,.cmd-item .fav{position:static;flex-shrink:0;font-family:var(--font-mono);font-size:12px;opacity:0;pointer-events:auto}
+.cmd-item.read .rd{opacity:1;color:var(--amber-dim)}
+.cmd-item.fav .fav{opacity:1;color:var(--amber)}
+.cmd-item .here{display:none;font-family:var(--font-mono);font-size:9.5px;color:var(--amber);letter-spacing:.06em;flex-shrink:0}
+.cmd-item.active .here{display:inline}
+.cmd-empty{padding:40px 20px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
 
 /* ============ MAIN ============ */
-.main{flex:1;margin-left:0;min-width:0;transition:margin .32s}
-@media(min-width:1000px){
-  .sidebar{transform:none}
-  .perf{display:none}
-  .main{margin-left:300px}
-  .hamb{display:none!important}
-}
+.main{flex:1;margin-left:50px;min-width:0}
+@media(max-width:640px){.main{margin-left:38px}.rail{width:38px}.nav-part{display:none}}
 
 /* ============ TOPBAR ============ */
 .topbar{
   position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;
   padding:11px 18px;background:color-mix(in srgb,var(--bg) 82%,transparent);
   backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
-}
-.hamb{
-  background:var(--panel);border:1px solid var(--line2);color:var(--ink);
-  width:40px;height:40px;border-radius:10px;font-size:18px;cursor:pointer;flex:0 0 auto;
 }
 .timecode{font-family:var(--font-mono);font-size:14px;letter-spacing:.12em;color:var(--amber);font-weight:700}
 .prog-wrap{flex:1;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
@@ -222,21 +262,49 @@ img{max-width:100%}
 .hero-stats .s b{display:block;font-family:var(--font-ui);font-weight:800;font-size:24px;color:var(--amber);font-variant-numeric:tabular-nums}
 .hero-stats .s small{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 
-/* ---- Portada simple del manual (sin la claqueta, que ahora vive en
-   landing.html) ---- */
-.simple-hero{padding:6px 0 4px}
+/* ---- Portada: hero "títulos de apertura" (mismo sistema que
+   landing-alt.html / fotografia-alt.html, pero contenido dentro del ancho
+   de lectura de 760px en vez de a sangre completa — evita tocar el
+   contenedor .content que comparten los 52 capítulos). ---- */
 .back-to-hub{
   display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;
   letter-spacing:.1em;text-transform:uppercase;color:var(--amber);text-decoration:none;margin-bottom:16px;
 }
 .back-to-hub:hover{text-decoration:underline}
-.simple-hero h1{
-  font-family:var(--font-ui);font-weight:900;font-size:clamp(30px,5.6vw,42px);
-  line-height:1.1;letter-spacing:-.015em;text-wrap:balance;color:var(--ink);
+.pf-hero{position:relative;border-radius:var(--r);overflow:hidden;isolation:isolate;background:var(--panel)}
+.pf-wedge{position:absolute;inset:0;z-index:-1;background:linear-gradient(78deg,var(--amber) 0%,var(--amber) 48%,transparent 48.6%)}
+.pf-wedge::after{content:'';position:absolute;inset:0;background-image:radial-gradient(#000 1px,transparent 1.3px);background-size:7px 7px;opacity:.1;mix-blend-mode:overlay}
+.pf-body{position:relative;padding:38px 30px 32px}
+.pf-kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--title-ink);text-transform:uppercase;margin-bottom:12px;position:relative;z-index:2}
+.pf-title{position:relative;z-index:2}
+.pf-title h1{font-family:var(--font-ui);font-weight:800;text-transform:uppercase;font-size:clamp(28px,5.6vw,54px);line-height:1.03;letter-spacing:-.005em;margin:0}
+.pf-title .ghost{position:absolute;top:0;left:0;pointer-events:none;mix-blend-mode:screen}
+.pf-title .ghost-a{color:var(--amber);transform:translate(.08em,.02em)}
+.pf-title .ghost-b{color:var(--shadow-tone);transform:translate(-.06em,-.02em)}
+.pf-title .main{position:relative;color:var(--title-ink)}
+.pf-title .line2{display:block}
+.pf-title .main .line2{color:transparent;-webkit-text-stroke-width:clamp(1px,.045em,2px);-webkit-text-stroke-color:var(--title-ink)}
+.pf-title .ghost .line2{-webkit-text-stroke-width:clamp(1px,.045em,2px);-webkit-text-stroke-color:currentColor;color:transparent}
+.pf-copy{position:relative;z-index:2;margin-top:20px;display:inline-block;background:rgba(10,9,7,.58);padding:14px 18px;max-width:48ch}
+.pf-copy .sub{color:var(--ink);margin:0;font-size:15.5px;line-height:1.6}
+.pf-copy .byline{font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);letter-spacing:.03em;margin-top:10px}
+.pf-copy .byline b{color:#fff;font-weight:700;border-bottom:1px solid var(--amber-dim)}
+.hero-cta{position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:12px;margin-top:22px;padding:0 30px 30px}
+.btn-play{
+  display:inline-flex;align-items:center;gap:10px;position:relative;
+  background:var(--amber);color:var(--title-ink);font-family:var(--font-body);font-weight:700;font-size:14px;
+  padding:14px 22px;border:none;cursor:pointer;transition:transform .15s,filter .15s;
 }
-.simple-hero .sub{color:var(--ink-dim);margin-top:14px;font-size:16px;max-width:62ch;line-height:1.65}
-.simple-hero .byline{font-family:var(--font-mono);font-size:13px;color:var(--muted);letter-spacing:.03em;margin-top:14px}
-.simple-hero .byline b{color:var(--ink);font-weight:700;border-bottom:1px solid var(--amber-dim)}
+.btn-play::before,.btn-play::after{content:'';position:absolute;top:50%;width:12px;height:12px;background:var(--bg);border-radius:50%;transform:translateY(-50%)}
+.btn-play::before{left:-6px}.btn-play::after{right:-6px}
+.btn-play:hover{filter:brightness(1.06)}
+.btn-play:active{transform:scale(.98)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--ink);
+  font-family:var(--font-body);font-weight:600;font-size:14px;padding:13px 18px;border:2px solid var(--ink);
+  cursor:pointer;transition:border-color .15s,color .15s;
+}
+.btn-ghost:hover{border-color:var(--amber);color:var(--amber)}
 .lauchat-promo{
   margin-top:26px;background:rgba(95,198,217,.08);border:1px solid rgba(95,198,217,.4);
   border-radius:13px;padding:22px 22px 20px;position:relative;
@@ -539,12 +607,19 @@ tr:nth-child(even) td{background:var(--panel)}
   .timecode,.prog-wrap{display:none}
   .tbtn{padding:6px 9px;font-size:11.5px}
   .acct-btn{margin-left:auto;max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .slate h1{font-size:clamp(24px,8vw,34px)}
-  .slate .body{padding:26px 20px 30px}
-  .hero-cta{gap:9px}
+  .hero-cta{gap:9px;padding:0 20px 24px}
   .btn-play,.btn-ghost{padding:12px 16px;font-size:13.5px}
   .hero-stats .s{padding:12px 8px}
   .hero-stats .s b{font-size:20px}
+  .pf-body{padding:28px 20px 24px}
+  .pf-title h1{font-size:clamp(22px,7.5vw,30px)}
+  /* En pantallas angostas el título ("Dirección" + "de Fotografía") es más
+     ancho que la cuña ámbar al 48% — la 2da línea (trazo hueco, pensado
+     para leerse SOLO sobre ámbar) cae parcialmente sobre fondo oscuro y
+     se vuelve oscuro-sobre-oscuro, ilegible (mismo bug ya resuelto en
+     fotografia-alt.html). Acá ensanchamos la cuña en vez de achicar más
+     el título, que ya está en su mínimo legible. */
+  .pf-wedge{background:linear-gradient(100deg,var(--amber) 0%,var(--amber) 97%,transparent 97.6%)}
 }
 
 /* ================= Cuenta / Auth ================= */
@@ -722,20 +797,31 @@ mark.df-note:hover{background:color-mix(in srgb, var(--amber) 36%, transparent)}
 <body>
 <div class="app">
 
-<!-- ================= SIDEBAR ================= -->
-<aside class="sidebar" id="sidebar">
-  <div class="perf"></div>
-  <div class="sb-head">
-    <div class="sb-brand">◤ MANUAL · DF</div>
-    <div class="sb-sub">Iluminación y Cámara · Dirección Fotográfica Cinematográfica</div>
-  </div>
-  <div class="sb-search">
-    <input id="search" type="search" placeholder="Buscar capítulo…">
-    <button class="fav-filter" id="favFilterBtn" title="Ver solo favoritos" type="button" style="display:none">★</button>
-  </div>
-  <nav class="sb-nav" id="nav"></nav>
+<!-- ================= RIEL (navegación) =================
+     Reemplaza el sidebar-lista clásico: un fotograma por capítulo, agrupados
+     por parte. Para saltar lejos o buscar, el botón ⌕ (o Ctrl+K) abre el
+     buscador "orden del día" a pantalla completa, más abajo. -->
+<aside class="rail">
+  <div class="rail-brand">◈</div>
+  <nav id="nav"></nav>
+  <button class="rail-jump" id="cmdOpenBtn" title="Buscar / saltar de capítulo" aria-label="Abrir buscador de capítulos" type="button">⌕</button>
+  <button class="fav-filter" id="favFilterBtn" title="Ver solo favoritos" type="button" style="display:none">★</button>
+  <div class="rail-hint">Ctrl<br><kbd>K</kbd></div>
 </aside>
-<div class="overlay" id="overlay"></div>
+
+<!-- ================= COMANDO / "ORDEN DEL DÍA" ================= -->
+<div class="cmd-overlay" id="cmdOverlay">
+  <div class="cmd-panel">
+    <div class="cmd-head">
+      <span class="ico">⌕</span>
+      <input type="text" id="cmdInput" placeholder="Buscar capítulo…" autocomplete="off">
+      <span class="count" id="cmdCount"></span>
+      <span class="esc" id="cmdCloseBtn">ESC</span>
+    </div>
+    <div class="cmd-title-row"><span>Orden del día</span><span id="cmdProgress"></span></div>
+    <div class="cmd-list" id="cmdList"></div>
+  </div>
+</div>
 
 <!-- ================= LAUCHAT ================= -->
 <button class="lc-btn" id="lcBtn" aria-label="Abrir LauChat AI, el asistente del manual">
@@ -855,7 +941,6 @@ mark.df-note:hover{background:color-mix(in srgb, var(--amber) 36%, transparent)}
 <div class="main">
   <div class="topbar">
     <a class="tbtn" href="landing.html" title="Volver al inicio" aria-label="Volver al inicio" style="font-size:15px;padding:7px 10px">◈</a>
-    <button class="hamb" id="hamb">☰</button>
     <span class="timecode" id="timecode">00:00:00:00</span>
     <div class="prog-wrap"><div class="prog" id="prog"></div></div>
     <button class="tbtn acct-btn" id="acctBtn">👤 Ingresar</button>
@@ -869,22 +954,32 @@ mark.df-note:hover{background:color-mix(in srgb, var(--amber) 36%, transparent)}
          es la puerta de entrada al englobe. Acá el manual ya autónomo solo
          necesita orientar a quien ya decidió leerlo.) -->
     <section class="chapter" id="portada">
-      <div class="simple-hero">
-        <a class="back-to-hub" href="landing.html">◈ Manual de Cine</a>
-        <h1>Dirección de Fotografía</h1>
-        <p class="sub">Cámara, óptica, exposición, luz y color, iluminación y método de trabajo — con una mirada personal y en clave explicativa, escrito de punta a punta desde la experiencia real de set.</p>
-        <p class="byline">Escrito y dirigido por <b>Lautaro Forestale</b></p>
+      <a class="back-to-hub" href="landing.html">◈ Manual de Cine</a>
+      <div class="pf-hero">
+        <div class="pf-wedge"></div>
+        <div class="pf-body">
+          <div class="pf-kicker">◆ Ya en pantalla —</div>
+          <div class="pf-title">
+            <h1 class="ghost ghost-a" aria-hidden="true">Dirección<span class="line2">de Fotografía</span></h1>
+            <h1 class="ghost ghost-b" aria-hidden="true">Dirección<span class="line2">de Fotografía</span></h1>
+            <h1 class="main">Dirección<span class="line2">de Fotografía</span></h1>
+          </div>
+          <div class="pf-copy">
+            <p class="sub">Cámara, óptica, exposición, luz y color, iluminación y método de trabajo — con una mirada personal y en clave explicativa, escrito de punta a punta desde la experiencia real de set.</p>
+            <p class="byline">Escrito y dirigido por <b>Lautaro Forestale</b></p>
+          </div>
+        </div>
         <div class="hero-cta">
           <button class="btn-play" data-go="c1">▶ Empezar a leer</button>
           <button class="btn-ghost" data-go="indice">☰ Índice completo</button>
           <button class="btn-ghost" data-go="como-leer">Cómo está organizado</button>
         </div>
-        <div class="hero-stats">
-          <div class="s"><b>52</b><small>Capítulos</small></div>
-          <div class="s"><b>9</b><small>Partes</small></div>
-          <div class="s"><b>147</b><small>Fotografías</small></div>
-          <div class="s"><b>87</b><small>Diagramas</small></div>
-        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="s"><b>52</b><small>Capítulos</small></div>
+        <div class="s"><b>9</b><small>Partes</small></div>
+        <div class="s"><b>147</b><small>Fotografías</small></div>
+        <div class="s"><b>87</b><small>Diagramas</small></div>
       </div>
       <div class="zonestrip" data-zones></div>
       <p><strong>Alcance:</strong> un recorrido completo por la dirección de fotografía cinematográfica — cámara, óptica, exposición, luz y color, iluminación, método de trabajo y contexto de la industria contemporánea — escrito de punta a punta como manual de oficio, pensado para leerse de principio a fin o consultarse capítulo por capítulo.</p>
@@ -6239,20 +6334,47 @@ const STRUCT=[
 ];
 const FLAT=[];STRUCT.forEach(g=>g.items.forEach(i=>FLAT.push(i)));
 
-/* ---- Render nav ---- */
+/* ---- Render nav: riel (dots) + lista del comando "orden del día" ----
+   Ambos comparten la clase .nav-link y data-id a propósito: el módulo de
+   progreso/favoritos (más abajo) sincroniza ✓/★ tocando ese selector, sin
+   importar si el elemento es un fotograma del riel o una fila del buscador. */
 const nav=document.getElementById('nav');
+const cmdList=document.getElementById('cmdList');
 function renderNav(){
   nav.innerHTML='';
   STRUCT.forEach(g=>{
     const h=document.createElement('div');h.className='nav-part';h.textContent=g.p;nav.appendChild(h);
     g.items.forEach(i=>{
       const a=document.createElement('a');a.className='nav-link'+(i.on?'':' pend');a.dataset.id=i.id;
-      a.innerHTML=`<span class="dot ${i.on?'on':''}"></span><span class="n">${i.n}</span><span>${i.t}</span><span class="fav">★</span><span class="rd">✓</span>`;
+      a.innerHTML=`<span class="dot ${i.on?'on':''}"></span><span class="n">${i.n}</span>`+
+        `<span class="tip"><b>${i.n}</b>${i.t}<i class="rd">✓</i><i class="fav">★</i></span>`;
       a.onclick=()=>go(i.id);nav.appendChild(a);
     });
   });
 }
 renderNav();
+function renderCmdList(filter){
+  const q=(filter||'').trim().toLowerCase();
+  cmdList.innerHTML='';
+  let shown=0;
+  STRUCT.forEach(g=>{
+    const items=g.items.filter(i=>!q||i.t.toLowerCase().includes(q)||i.n.toLowerCase().includes(q));
+    if(!items.length)return;
+    shown+=items.length;
+    const gl=document.createElement('div');gl.className='cmd-group-label';gl.textContent=g.p;cmdList.appendChild(gl);
+    items.forEach(i=>{
+      const row=document.createElement('a');
+      row.className='cmd-item nav-link'+(i.id===cur?' active':'')+(i.on?'':' pend');
+      row.dataset.id=i.id;
+      row.innerHTML=`<span class="n">${i.n}</span><span class="t">${i.t}</span>`+
+        `<i class="rd">✓</i><i class="fav">★</i><span class="here">ACÁ</span>`;
+      row.onclick=()=>{go(i.id);closeCmd();};
+      cmdList.appendChild(row);
+    });
+  });
+  const cc=document.getElementById('cmdCount'); if(cc) cc.textContent=shown+' resultados';
+  if(!shown){const e=document.createElement('div');e.className='cmd-empty';e.textContent='Sin coincidencias.';cmdList.appendChild(e);}
+}
 
 /* ---- Índice completo ---- */
 const fi=document.getElementById('fullIndex');
@@ -6299,8 +6421,6 @@ function go(id){
   document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.dataset.id===id));
   window.scrollTo({top:0});
   updatePager();
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('on');
   // Deja el capítulo actual en el hash de la URL: permite compartir o guardar el
   // link directo a un capítulo puntual, sin cambiar el comportamiento del botón
   // "atrás" del navegador (replaceState, no pushState).
@@ -6340,16 +6460,24 @@ tb.onclick=()=>{theme=theme==='tung'?'luzdia':'tung';
   tb.textContent=theme==='luzdia'?'🌙 3200K':'☀ 5600K';
   try{ localStorage.setItem('df_theme',theme); }catch(_){}};
 
-/* ---- Menú móvil ---- */
-const sb=document.getElementById('sidebar'),ov=document.getElementById('overlay');
-document.getElementById('hamb').onclick=()=>{sb.classList.add('open');ov.classList.add('on');};
-ov.onclick=()=>{sb.classList.remove('open');ov.classList.remove('on');};
-
-/* ---- Búsqueda ---- */
-document.getElementById('search').addEventListener('input',e=>{
-  const q=e.target.value.toLowerCase();
-  document.querySelectorAll('.nav-link').forEach(a=>{
-    a.style.display=a.textContent.toLowerCase().includes(q)?'flex':'none';});
+/* ---- Comando / "orden del día" (reemplaza el buscador+drawer viejo) ---- */
+const cmdOverlay=document.getElementById('cmdOverlay'),cmdInput=document.getElementById('cmdInput');
+function openCmd(){
+  cmdOverlay.classList.add('open');
+  cmdInput.value='';
+  renderCmdList('');
+  const prog=document.getElementById('cmdProgress');
+  if(prog){const n=document.querySelectorAll('.nav-link.read').length;prog.textContent=n+' / '+FLAT.length+' leídos';}
+  setTimeout(()=>cmdInput.focus(),10);
+}
+function closeCmd(){cmdOverlay.classList.remove('open');}
+document.getElementById('cmdOpenBtn').onclick=openCmd;
+document.getElementById('cmdCloseBtn').onclick=closeCmd;
+cmdOverlay.addEventListener('click',e=>{if(e.target===cmdOverlay)closeCmd();});
+cmdInput.addEventListener('input',()=>renderCmdList(cmdInput.value));
+addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();cmdOverlay.classList.contains('open')?closeCmd():openCmd();}
+  if(e.key==='Escape'&&cmdOverlay.classList.contains('open'))closeCmd();
 });
 
 /* ---- Volver arriba ---- */
@@ -6359,6 +6487,8 @@ topB.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
 
 /* ---- Teclado ---- */
 addEventListener('keydown',e=>{
+  // No interferir si se está escribiendo (ej. el buscador del comando).
+  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
   if(e.key==='ArrowRight')document.getElementById('next').click();
   if(e.key==='ArrowLeft')document.getElementById('prev').click();
 });
