@@ -25,7 +25,7 @@
   --line:#3a3222; --line2:#4c4230;
   --amber:#e8ad57; --amber-dim:#c88b3a; --shadow-tone:#6b6355;
   --title-ink:#17140f;
-  --maxw:1180px; --heromaxw:1040px; --r:3px;
+  --maxw:1180px; --heromaxw:1400px; --r:3px;
   --font-display:'Unbounded',sans-serif;
   --font-body:'Instrument Sans',sans-serif;
   --font-mono:'Space Mono',ui-monospace,monospace;
@@ -106,11 +106,16 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 @media(prefers-reduced-motion:reduce){.wedge{animation:none}}
 
 .iris{
-  position:absolute;top:52%;left:2%;transform:translateY(-50%);width:300px;height:300px;z-index:0;
+  position:absolute;top:52%;left:2%;transform:translateY(-50%);width:min(30vw,420px);height:min(30vw,420px);z-index:0;
   border-radius:50%;pointer-events:none;
   background:repeating-radial-gradient(circle at center,transparent 0 22px,rgba(23,20,15,.12) 22px 23px);
 }
-@media(max-width:700px){.iris{width:220px;height:220px;left:-30px}}
+.iris2{
+  position:absolute;top:38%;left:33%;transform:translateY(-50%);width:min(22vw,300px);height:min(22vw,300px);z-index:0;
+  border-radius:50%;pointer-events:none;
+  background:repeating-radial-gradient(circle at center,transparent 0 26px,rgba(242,236,221,.05) 26px 27px);
+}
+@media(max-width:700px){.iris{width:220px;height:220px;left:-30px}.iris2{display:none}}
 .regmark{position:absolute;width:18px;height:18px;z-index:2;opacity:.55;pointer-events:none}
 .regmark::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--ink);transform:translateY(-.5px)}
 .regmark::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink);transform:translateX(-.5px)}
@@ -120,17 +125,17 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
 /* Antes el costado quedaba vacío a anchos grandes — ahora el título
    y las latas del englobe comparten la misma fila, aprovechando el
    ancho completo en vez de apilar todo en una sola columna angosta. */
-.hero-grid{position:relative;z-index:2;display:flex;gap:5%;align-items:center;flex-wrap:wrap}
-.hero-main{flex:1 1 400px;min-width:260px}
-.hero-side{flex:0 0 190px;display:flex;flex-direction:column;gap:6px;padding-top:4px}
+.hero-grid{position:relative;z-index:2;display:flex;gap:clamp(24px,6vw,90px);align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hero-main{flex:1 1 460px;min-width:260px;max-width:640px}
+.hero-side{flex:0 0 auto;width:clamp(190px,16vw,260px);display:flex;flex-direction:column;gap:6px;padding-top:4px}
 .side-label{
-  font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;line-height:1.8;color:var(--muted);margin-bottom:10px;
+  font-family:var(--font-mono);font-size:clamp(9px,.7vw,11px);letter-spacing:.08em;line-height:1.8;color:var(--muted);margin-bottom:10px;
 }
 
 .kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--title-ink);text-transform:uppercase;position:relative;z-index:2}
 
 .ca-title{position:relative;margin-top:14px;z-index:2}
-.ca-title h1{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:clamp(38px,9.5vw,72px);line-height:.9;letter-spacing:-.015em}
+.ca-title h1{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:clamp(38px,7.5vw,126px);line-height:.9;letter-spacing:-.015em}
 .ca-title .ghost{position:absolute;top:0;left:0;pointer-events:none;mix-blend-mode:screen}
 .ca-title .ghost-a{color:var(--amber);transform:translate(4px,1px)}
 .ca-title .ghost-b{color:var(--shadow-tone);transform:translate(-3px,-1px)}
@@ -177,19 +182,19 @@ h2{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.4vw,25
   content:'';position:absolute;left:34px;top:6px;bottom:6px;width:1px;z-index:0;
   background-image:repeating-linear-gradient(180deg,var(--ink) 0 6px,transparent 6px 15px);opacity:.18;
 }
-.can{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;position:relative;z-index:1}
-.can .lid{width:70px;height:70px;flex:0 0 auto;border-radius:50%;border:4px solid var(--ink);position:relative;display:flex;align-items:center;justify-content:center;background:var(--paper2)}
+.can{display:flex;align-items:center;gap:clamp(12px,1vw,18px);text-decoration:none;color:inherit;position:relative;z-index:1}
+.can .lid{width:clamp(70px,7vw,100px);height:clamp(70px,7vw,100px);flex:0 0 auto;border-radius:50%;border:4px solid var(--ink);position:relative;display:flex;align-items:center;justify-content:center;background:var(--paper2)}
 .can.on .lid{background:var(--amber);border-color:var(--title-ink)}
 .can .lid .hub{
-  width:18px;height:18px;border-radius:50%;background:var(--ink);
-  box-shadow:0 -24px 0 -6px var(--ink),0 24px 0 -6px var(--ink),24px 0 0 -6px var(--ink),-24px 0 0 -6px var(--ink);
+  width:22px;height:22px;border-radius:50%;background:var(--ink);
+  box-shadow:0 -28px 0 -7px var(--ink),0 28px 0 -7px var(--ink),28px 0 0 -7px var(--ink),-28px 0 0 -7px var(--ink);
 }
 .can.on .lid .hub{
   background:var(--title-ink);
-  box-shadow:0 -24px 0 -6px var(--title-ink),0 24px 0 -6px var(--title-ink),24px 0 0 -6px var(--title-ink),-24px 0 0 -6px var(--title-ink);
+  box-shadow:0 -28px 0 -7px var(--title-ink),0 28px 0 -7px var(--title-ink),28px 0 0 -7px var(--title-ink),-28px 0 0 -7px var(--title-ink);
 }
-.can .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;text-align:left;color:var(--ink-dim);line-height:1.5}
-.can .tag b{display:block;font-family:var(--font-display);font-weight:700;font-size:12.5px;text-transform:uppercase;color:var(--ink);margin-bottom:2px}
+.can .tag{font-family:var(--font-mono);font-size:clamp(9.5px,.75vw,11.5px);letter-spacing:.06em;text-align:left;color:var(--ink-dim);line-height:1.5}
+.can .tag b{display:block;font-family:var(--font-display);font-weight:700;font-size:clamp(12.5px,1vw,15px);text-transform:uppercase;color:var(--ink);margin-bottom:2px}
 .can.rot1{transform:rotate(-2deg)}
 .can.rot2{transform:rotate(1.5deg) translateX(6px)}
 .can.rot3{transform:rotate(-1deg) translateX(3px)}
@@ -245,11 +250,13 @@ footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter
 <section class="hero">
   <div class="reel">
     <div class="light-leak"></div>
-    <span class="stripe" style="left:44%;width:20px;opacity:.4"></span>
-    <span class="stripe" style="left:52%;width:9px;opacity:.22"></span>
-    <span class="stripe" style="left:59%;width:30px;opacity:.13"></span>
-    <span class="stripe" style="left:70%;width:7px;opacity:.28"></span>
-    <span class="stripe" style="left:80%;width:14px;opacity:.16"></span>
+    <span class="stripe" style="left:43%;width:34px;opacity:.4"></span>
+    <span class="stripe" style="left:51%;width:14px;opacity:.24"></span>
+    <span class="stripe" style="left:57%;width:52px;opacity:.13"></span>
+    <span class="stripe" style="left:68%;width:11px;opacity:.28"></span>
+    <span class="stripe" style="left:76%;width:26px;opacity:.17"></span>
+    <span class="stripe" style="left:85%;width:8px;opacity:.2"></span>
+    <span class="stripe" style="left:91%;width:38px;opacity:.1"></span>
     <span class="scratch" style="left:12%;opacity:.5"></span>
     <span class="scratch" style="left:38%;opacity:.3"></span>
     <span class="scratch" style="left:64%;opacity:.4"></span>
@@ -263,6 +270,7 @@ footer p{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter
       <div class="hero-body">
         <div class="wedge"></div>
         <div class="iris"></div>
+        <div class="iris2"></div>
         <span class="regmark tr"></span>
         <span class="regmark bl"></span>
 
