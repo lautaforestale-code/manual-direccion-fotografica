@@ -6713,7 +6713,15 @@ addEventListener('keydown',e=>{
   function mdInline(s){
     s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
     s=s.replace(/`([^`\n]+)`/g,'<code>$1</code>');
-    s=s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+    // Ojo con esto: si la IA usa "*" como signo de multiplicación en una fórmula
+    // en texto plano (ej. "f * f", "2.8 * 0.025mm" -- nos pasó de verdad probando
+    // en vivo), un asterisco suelto con espacios alrededor NO es énfasis de
+    // markdown. Antes esta regex lo tomaba igual como apertura/cierre de <em> y se
+    // comía los asteriscos (y todo el texto entre el primer "*" y el siguiente,
+    // aunque cruzara varias oraciones), dejando "H = (f f) / (N c)" sin ningún
+    // operador visible. Ahora exigimos que el contenido no empiece ni termine en
+    // espacio -- así "f * f" ya no matchea, pero "*importante*" sigue andando.
+    s=s.replace(/(^|[^*])\*(?!\s)([^*\n]+?)(?<!\s)\*(?!\*)/g,'$1<em>$2</em>');
     return s;
   }
   function mdToHtml(md){
