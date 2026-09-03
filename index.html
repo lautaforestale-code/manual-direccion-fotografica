@@ -6965,7 +6965,12 @@ addEventListener('keydown',e=>{
       bodyEl.appendChild(cutWrap);
     }
 
-    HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>900?full.slice(0,900)+'…':full});
+    // El '…' de corte se ve, para el propio modelo leyendo su historial, exactamente
+    // igual a una respuesta suya que se cortó a mitad de frase (nos pasó de verdad:
+    // se disculpó por "haberse cortado" en un turno que en realidad había terminado
+    // bien -- lo único corto era el RESUMEN guardado para no gastar tokens de más).
+    // Con una marca explícita entre corchetes ya no hay ambigüedad.
+    HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>900?full.slice(0,900)+' [resumen recortado para el historial, la respuesta original terminó bien]':full});
     if(HISTORY.length>6)HISTORY=HISTORY.slice(-6);
 
     if(usedFinal.length){
@@ -7025,7 +7030,7 @@ addEventListener('keydown',e=>{
       answerBox.querySelector('.lc-txt').innerHTML=mdToHtml(m.answer);
       results.appendChild(answerBox);
 
-      HISTORY.push({role:'user',content:m.question},{role:'assistant',content:m.answer.length>900?m.answer.slice(0,900)+'…':m.answer});
+      HISTORY.push({role:'user',content:m.question},{role:'assistant',content:m.answer.length>900?m.answer.slice(0,900)+' [resumen recortado para el historial, la respuesta original terminó bien]':m.answer});
     });
     if(HISTORY.length>6) HISTORY=HISTORY.slice(-6);
     try{
