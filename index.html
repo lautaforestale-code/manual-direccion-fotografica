@@ -6839,7 +6839,17 @@ addEventListener('keydown',e=>{
         body:JSON.stringify({question:q, context:ctx, history:HISTORY}),
         signal:controller.signal,
       });
-      if(!resp.ok) throw new Error('http '+resp.status);
+      if(!resp.ok){
+        // El servidor a veces manda un motivo específico y útil (cupo agotado,
+        // sobrecarga del proveedor, etc.) — antes se descartaba acá y el catch de
+        // más abajo mostraba un mensaje genérico que encima le echaba la culpa
+        // al manual sin motivo. Lo propagamos para poder mostrarlo tal cual.
+        let serverMsg='';
+        try{ serverMsg=(await resp.json())?.error||''; }catch(_){}
+        const e=new Error('http '+resp.status);
+        e.serverMessage=serverMsg;
+        throw e;
+      }
       const data=await resp.json();
       if(!data.answer) throw new Error('sin respuesta');
       return {answer:data.answer, truncated:!!data.truncated};
@@ -6911,8 +6921,19 @@ addEventListener('keydown',e=>{
       if(extracted){
         full=extracted.passage;
         usedFinal=[extracted.chunk, ...used.filter(c=>c.id!==extracted.chunk.id)].slice(0,6);
+      }else if(used.length){
+        full=used[0].texto.slice(0,300)+'…';
       }else{
-        full=used.length ? used[0].texto.slice(0,300)+'…' : 'No pude generar una respuesta ahora mismo (y el manual no tiene nada directamente relacionado con esto). Probá de nuevo en un momento.';
+        // Antes esto decía "el manual no tiene nada relacionado con esto" siempre
+        // que la búsqueda local no encontraba nada — pero eso no es cierto cuando
+        // la causa real es que la IA no contestó (caída de red, cupo, sobrecarga
+        // del proveedor): ahí la pregunta puede ser perfectamente respondible, solo
+        // que en este intento no llegamos. Si el servidor nos dio un motivo
+        // concreto (ver callAI) lo mostramos tal cual; si no, un mensaje honesto
+        // sobre la conexión, sin acusar al manual de algo que no sabemos.
+        full=err && err.serverMessage
+          ? err.serverMessage
+          : 'No pude conectar con la IA en este momento. Probá de nuevo en unos segundos.';
       }
     }
     clearTimeout(slowNotice);
