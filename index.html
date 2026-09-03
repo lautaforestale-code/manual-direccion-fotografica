@@ -588,6 +588,17 @@ tr:nth-child(even) td{background:var(--panel)}
 .lc-fb:disabled{cursor:default;opacity:.55;transform:none}
 .lc-fb.picked{border-color:var(--amber);background:color-mix(in srgb, var(--amber) 12%, transparent)}
 .lc-fb-thanks{font-family:var(--font-mono);font-size:9.5px;color:var(--muted)}
+.lc-truncated{
+  margin-top:10px;padding:9px 11px;background:color-mix(in srgb, var(--amber) 10%, transparent);
+  border:1px solid var(--amber-dim);border-radius:7px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+}
+.lc-truncated .msg{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-dim);flex:1 1 auto}
+.lc-continue-btn{
+  background:var(--panel3);border:1px solid var(--amber);color:var(--amber2);
+  font-family:var(--font-mono);font-size:10.5px;padding:6px 11px;border-radius:6px;cursor:pointer;
+  transition:background .15s;
+}
+.lc-continue-btn:hover{background:color-mix(in srgb, var(--amber) 15%, transparent)}
 .lc-foot{
   padding:11px 18px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:9.5px;
   color:var(--muted);letter-spacing:.03em;flex:0 0 auto;line-height:1.5;
@@ -6831,10 +6842,35 @@ addEventListener('keydown',e=>{
       if(!resp.ok) throw new Error('http '+resp.status);
       const data=await resp.json();
       if(!data.answer) throw new Error('sin respuesta');
-      return data.answer;
+      return {answer:data.answer, truncated:!!data.truncated};
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  // Filtra los "Fuentes" a mostrar: usar()/search() los elige por relevancia a la
+  // PREGUNTA, pero eso no garantiza que la IA realmente se haya apoyado en ese
+  // fragmento puntual para la respuesta que terminó dando (puede haber respondido
+  // con conocimiento general, o el fragmento puede compartir alguna palabra clave
+  // sin tener nada que ver). Nos quedamos solo con los fragmentos cuyo vocabulario
+  // propio aparece de verdad en el texto de la respuesta — así una respuesta
+  // inventada no queda "avalada" por citas que en realidad no la respaldan.
+  // Ojo: contar palabras compartidas en bruto no alcanza — el vocabulario del oficio
+  // (luz, sensor, exposición, diafragma...) se repite en casi todos los capítulos,
+  // así que cualquier respuesta sobre fotografía "engancha" por casualidad con
+  // fragmentos que no tienen nada que ver. Lo que sí separa bien fue medido contra
+  // ejemplos reales: la FRACCIÓN del vocabulario propio del fragmento que aparece en
+  // la respuesta (no el conteo absoluto) — para una cita genuina ronda 0.16-0.36,
+  // para una coincidencia casual ronda 0.03-0.09.
+  function sourcesUsedInAnswer(chunks, answerText){
+    const aToks=new Set(tokenize(answerText));
+    return chunks.filter(c=>{
+      const cToks=[...new Set(tokenize(c.titulo+' '+c.texto))];
+      if(cToks.length<4)return false;
+      let hits=0;
+      cToks.forEach(t=>{ if(aToks.has(t))hits++; });
+      return hits>=4 && (hits/cToks.length)>=0.12;
+    });
   }
 
   function scrollToEnd(){ results.scrollTop=results.scrollHeight; }
@@ -6862,9 +6898,11 @@ addEventListener('keydown',e=>{
     // evita que a los pocos segundos parezca que quedó trabado.
     const slowNotice=setTimeout(()=>{ status.textContent='Elaborando una respuesta completa, puede tardar unos segundos más…'; }, 4000);
 
-    let full='', usedFinal=used, source='ia';
+    let full='', usedFinal=used, source='ia', truncated=false;
     try{
-      full=await callAI(q, ctx);
+      const res=await callAI(q, ctx);
+      full=res.answer; truncated=res.truncated;
+      usedFinal=sourcesUsedInAnswer(used, full);
     }catch(err){
       // eslint-disable-next-line no-console
       console.warn('[LauChat] IA no disponible ahora, uso el respaldo local:', err);
@@ -6882,6 +6920,21 @@ addEventListener('keydown',e=>{
     txtEl.classList.remove('typing');
     badgeEl.textContent = source==='ia' ? '✦ generado por IA' : '⌕ búsqueda en el manual';
     badgeEl.classList.toggle('ia', source==='ia');
+
+    // Si el modelo se quedó sin presupuesto de tokens a mitad de la respuesta, se
+    // lo avisamos en vez de dejar que el corte pase por una respuesta terminada —
+    // el botón simplemente reenvía el pedido de seguir, igual que escribirlo a mano.
+    if(truncated){
+      const cutWrap=document.createElement('div');
+      cutWrap.className='lc-truncated';
+      cutWrap.innerHTML='<span class="msg">⚠ Esta respuesta se cortó por longitud.</span>'
+        +'<button type="button" class="lc-continue-btn">Continuar respuesta →</button>';
+      cutWrap.querySelector('.lc-continue-btn').onclick=()=>{
+        input.value='Continuá tu respuesta anterior exactamente desde donde se cortó, sin repetir lo ya dicho.';
+        form.requestSubmit();
+      };
+      bodyEl.appendChild(cutWrap);
+    }
 
     HISTORY.push({role:'user',content:q},{role:'assistant',content: full.length>900?full.slice(0,900)+'…':full});
     if(HISTORY.length>6)HISTORY=HISTORY.slice(-6);
